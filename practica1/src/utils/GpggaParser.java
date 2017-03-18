@@ -1,6 +1,6 @@
-package utilities;
+package utils;
 
-public class GPGGAParser {
+public class GpggaParser {
 
 	private static double a = 6378137.0;
 
