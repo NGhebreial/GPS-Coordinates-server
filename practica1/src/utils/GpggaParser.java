@@ -33,8 +33,7 @@ public class GpggaParser {
 	 * @param isWestLongitude
 	 *            indicate if longitude refers to west or east
 	 */
-	public static void setup(double degreeLatitude, double minLatitude, double degreeLongitude, double minLongitude,
-			boolean isWestLongitude) {
+	public static void setup(double degreeLatitude, double minLatitude, double degreeLongitude, double minLongitude, boolean isWestLongitude) {
 		ro = convertDegreesToRadians(degreeLatitude, minLatitude);
 		if (isWestLongitude) {
 			lambda = -(convertDegreesToRadians(degreeLongitude, minLongitude));
@@ -44,54 +43,55 @@ public class GpggaParser {
 		}
 	}
 
-	private double getLambdaSub0() {
+	private static double getLambdaSub0() {
 		return centerLambda * (Math.PI / 180);
 	}
 
-	private double getESquarePrime() {
+	private static double getESquarePrime() {
 		return eSquare / (1 - eSquare);
 	}
 
-	private double N(){
+	private static double N(){
 		double sinRo = Math.sin(ro);
 		double square = Math.sqrt( 1 - (eSquare* Math.pow(sinRo, 2.0)));
 		return a / square;
 	}
 
-	private double T(){
+	private static double T(){
 		double tan = Math.tan(ro);
 		return Math.pow(tan, 2.0);
 	}
 	
-	private double C(){
+	private static double C(){
 		double cosRo = Math.cos(ro);
 		return getESquarePrime() * Math.pow(cosRo, 2.0);
 	}
 	
-	private double A(){
+	private static double A(){
 		return Math.cos(ro) * (lambda - getLambdaSub0());
 	}
 	
-	private double M(){
+	private static double M(){
 		double first = ( 1 - ( eSquare/4 ) - ( 3/64* Math.pow(eSquare, 2.0) ) - ( 5/256* Math.pow(eSquare, 3.0) ) ) * ro;
 		double second = ( ( 3/8 * eSquare ) + ( 3/32 * Math.pow(eSquare, 2.0) ) + ( 45/1024 * Math.pow(eSquare, 3.0) ) ) * Math.sin(2*ro);
 		double third = ( ( 15/256 * Math.pow(eSquare, 2.0) ) + ( 45/1024 * Math.pow(eSquare, 3.0) ) ) * Math.sin(4*ro);
 		double fourth =  ( 35/3072 * Math.pow(eSquare, 3.0)) * Math.sin(6*ro);
 		return a * ( first - second + third - fourth );
 	}
+
 	private static double convertDegreesToRadians(double degrees, double minutes) {
 		double angle = degrees + minutes / 60.0;
 		return Math.toRadians(angle);
 	}
 	
 	/**Return the UMT easting in radians*/
-	public double getUMTEasting(){
+	public static double getUMTEasting(){
 		double second = ( A() + (1 - T() + C())*Math.pow(A(), 3.0)/6 + ( 5 - 18*T() + Math.pow(T(), 2.0) + 72 * C() - 58 * eSquare ) * Math.pow(A(), 3.0)/120 );
 		return 0.9996 * N() * second + 500000;
 	}
 	
 	/**Return the UMT easting in radians*/
-	public double getUMTNorting(){
+	public static double getUMTNorting(){
 		double first = M() + N() * Math.tan(ro);
 		double second = ( Math.pow(A(), 2.0)/2 + ( 5 - T() + 9 * C() + 4 * Math.pow(C(), 2.0) ) * Math.pow(A(), 4.0)/24 );
 		double third = ( ( 61 - 58 * T() + Math.pow(T(), 2.0) + 600 * C() - 330 * eSquare ) * Math.pow(A(), 6.0)/720 );
