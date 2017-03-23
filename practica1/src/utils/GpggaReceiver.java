@@ -36,7 +36,7 @@ public class GpggaReceiver extends Thread {
                 while( connection.isConnected() && (read = buffer.readLine()) != null ){
                     box.call(read);
                 }
-            }catch( IOException eSystem.out.println("IOException " + e.getMessage()); ) {
+            }catch( IOException e ) {
                 e.printStackTrace();
             }
         }
