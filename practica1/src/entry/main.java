@@ -1,5 +1,6 @@
 package entry;
 
+import utils.CoordsCalculator;
 import utils.GpggaMessage;
 import utils.UTMConverter;
 import views.MapViewer;
@@ -7,9 +8,9 @@ import views.MapViewer;
 import javax.swing.*;
 
 public class main {
-
+	private static MapViewer map;
     public static void startUI(){
-        MapViewer map = new MapViewer();
+        map = new MapViewer();
         // map.drawPointer( 0, 0 );
     }
     public static void doMap(){
@@ -35,12 +36,15 @@ public class main {
                     true
             );
             System.out.println("Calculated: Norting -> " + UTMConverter.getUMTNorting() + " Easting -> " + UTMConverter.getUMTEasting());
+            double north = UTMConverter.getUMTNorting();
+            double east = UTMConverter.getUMTEasting();
+            
         }
     }
 
     public static void main( String[] args ){
-        // test();
-        doMap();
+        //doMap();
+        test();
         // GpggaReceiver receiver = new GpggaReceiver("192.168.1.134", 9090, new GpggaBox());
         // receiver.start();
         // try {
