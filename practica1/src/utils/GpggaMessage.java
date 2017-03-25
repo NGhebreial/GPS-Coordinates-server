@@ -5,23 +5,23 @@ import java.util.regex.Pattern;
 public class GpggaMessage {
 
     // Raw message
-    private String rawMsg;
+    private String rawMsg = "";
     // GPS Message type, gpgga
-    private String type;
+    private String type = MSG_TYPE;
     // Time the message was taken at
-    private long time;
+    private double time = -1;
     // Current Latitude
-    private double latitude;
+    private double latitude = -1;
     // Min Latitude
-    private double latitudeMinutes;
+    private double latitudeMinutes = -1;
     // Latitude Orientation
-    private Orientation latitudeOrientation;
+    private Orientation latitudeOrientation = Orientation.NORTH;
     // Current Longitude
-    private double longitude;
+    private double longitude = -1;
     // Min Longitude
-    private double longitudeMinutes;
+    private double longitudeMinutes = -1;
     // Longitude Orientation
-    private Orientation longitudeOrientation;
+    private Orientation longitudeOrientation = Orientation.WEST;
     // Data quality
     /**
      *  Fix quality:
@@ -33,91 +33,63 @@ public class GpggaMessage {
      *  5 = Float RTK
      *  6 = estimated (dead reckoning) (2.3 feature)
      */
-    private int quality;
+    private int quality = -1;
     // Number of satellites
-    private int noSatellites;
+    private int noSatellites = -1;
     // Horizontal dilution of position
-    private double horDilution;
+    private double horDilution = -1;
     // Altitude, Meters, above mean sea level (two fields)
-    private double altitudeAboveSea;
+    private double altitudeAboveSea = -1;
     // Height of geoid (mean sea level) above WGS84 ellipsoid (two fields)
-    private double geoidHeight;
+    private double geoidHeight = -1;
     // Time in seconds since last DGPS update
-    private int dgpsElapsedTime;
+    private int dgpsElapsedTime = -1;
     // DGPS station ID number
-    private int dgpsStationId;
+    private int dgpsStationId = -1;
     // Checksum data, always begins with *
-    private int checksum;
+    private String checksum = "";
     // Fixed data available
-    private boolean fixedData;
+    private boolean fixedData = false;
+    private boolean validData = false;
 
     public enum Orientation { NORTH, SOUTH, EAST, WEST }
 
     public static final String MSG_TYPE = "GPGGA";
 
-    public GpggaMessage(String rawMsg){
+    public GpggaMessage( String rawMsg){
         this.rawMsg = rawMsg;
         this.type = MSG_TYPE;
         // Tokenize msg
         String [] tokens = rawMsg.split( Pattern.quote( "," ) );
-        this.quality = Integer.parseInt( tokens[6] );
-        if( this.quality == 0 || !isValid( rawMsg ) ){
-            // No fixed data
+        if( !("$GPGGA").equalsIgnoreCase(tokens[0]) ){
+            // Not a gpgga packet
             this.fixedData = false;
         }else{
-            this.fixedData = true;
-            // Parse date ??
-            this.time = Long.parseLong( tokens[1] );
-            this.setupLatAndLong(tokens[2], tokens[3], tokens[4], tokens[5]);
-            this.noSatellites = Integer.parseInt( tokens[7] );
-            this.horDilution = Double.parseDouble( tokens[8] );
-            this.altitudeAboveSea = Double.parseDouble( tokens[9] );
-            // Skip one field - Meters
-            this.geoidHeight = Double.parseDouble( tokens[11] );
-            // Skip one field - Meters
-            // this.dgpsElapsedTime = ("").equals( tokens[13] ) ? null : Integer.parseInt( tokens[13] );
-            // this.dgpsStationId = ("").equals( tokens[13] ) ? null : Integer.parseInt( tokens[13] );
-            char [] aux = tokens[14].toCharArray();
-            this.checksum = Integer.parseInt( String.copyValueOf(aux, 1, aux.length -2) );
-        }
-    }
+            this.setQuality( tokens.length > 6?tokens[ 6 ]:"" );
+            if( this.quality <= 0 || !isValid( rawMsg ) ){
+                // No fixed data
+                this.fixedData = false;
+            }else{
+                this.fixedData = true;
+                // Parse date ??
+                this.setTime( tokens[ 1 ] );
+                this.setLatitude( tokens[ 2 ] );
+                this.setLatitudeOrientation( tokens[ 3 ] );
+                this.setLongitude( tokens[ 4 ] );
+                this.setLongitudeOrientation( tokens[ 5 ] );
 
-    private void setupLatAndLong(String lat, String latOr, String lon, String lonOr){
-        char [] latArr = lat.toCharArray();
-        char [] lonArr = lon.toCharArray();
-        this.latitude = Double.parseDouble(String.copyValueOf(latArr, 0, 2));
-        this.latitudeMinutes = Double.parseDouble(String.copyValueOf(latArr, 2, latArr.length-2));
-        this.longitude = Double.parseDouble(String.copyValueOf(lonArr, 0, 2));
-        this.longitudeMinutes = Double.parseDouble(String.copyValueOf(lonArr, 2, latArr.length-2));
+                this.setNoSatellites( tokens[ 7 ] );
+                this.setHorDilution( tokens[ 8 ] );
+                this.setAltitudeAboveSea( tokens[ 9 ] );
+                // Skip one field - Meters
+                this.setGeoidHeight( tokens[ 11 ] );
+                // Skip one field - Meters
+                // this.setDgpsElapsedTime(tokens[12]);
+                // this.setDgpsStationId(tokens[12]);
 
-        switch( latOr.toUpperCase().charAt( 0 ) ){
-            case 'N':
-                this.latitudeOrientation = Orientation.NORTH;
-                break;
-            case 'S':
-                this.latitudeOrientation = Orientation.SOUTH;
-                break;
-            case 'E':
-                this.latitudeOrientation = Orientation.EAST;
-                break;
-            case 'W':
-                this.latitudeOrientation = Orientation.WEST;
-                break;
-        }
-
-        switch( lonOr.toUpperCase().charAt( 0 ) ){
-            case 'N':
-                this.longitudeOrientation = Orientation.NORTH;
-                break;
-            case 'S':
-                this.longitudeOrientation = Orientation.SOUTH;
-                break;
-            case 'E':
-                this.longitudeOrientation = Orientation.EAST;
-                break;
-            case 'W':
-                this.longitudeOrientation = Orientation.WEST;
-                break;
+                this.checksum = tokens[14];
+                this.validData = isValid(tokens[14]);
+            }
         }
     }
 
@@ -128,17 +100,15 @@ public class GpggaMessage {
         byte checksumCalcValue = 0;
         int checksumValue;
 
-        if( (rawMsg.charAt(0) != '$') || (checksumIndex==-1) ){
+        if( (rawMsg.charAt(0) != '$') || (checksumIndex == -1) ){
             valid = false;
-        }
-        //
-        if( valid ){
+        }else{
             String val = rawMsg.substring(checksumIndex + 1, rawMsg.length()).trim();
             checksumValue = Integer.parseInt(val, 16);
-            for (int i = 1; i < checksumIndex; i++){
+            for(int i = 1; i < checksumIndex; i++){
                 checksumCalcValue = (byte) (checksumCalcValue ^ bytes[i]);
             }
-            if (checksumValue != checksumCalcValue){
+            if( checksumValue != checksumCalcValue ){
                 valid = false;
             }
         }
@@ -153,7 +123,7 @@ public class GpggaMessage {
         return type;
     }
 
-    public long getTime(){
+    public double getTime(){
         return time;
     }
 
@@ -209,12 +179,100 @@ public class GpggaMessage {
         return dgpsStationId;
     }
 
-    public int getChecksum(){
+    public String getChecksum(){
         return checksum;
     }
 
     public boolean isFixedData(){
         return fixedData;
+    }
+
+    public boolean isValid(){
+        return this.isValid( this.rawMsg );
+    }
+
+    public void setTime(String time){
+        this.time = ("").equals(time) ? -1 : Double.parseDouble( time );
+    }
+
+    public void setLatitude(String latitude){
+        if( !("").equals(latitude) ){
+            char[] latArr = latitude.toCharArray();
+            this.latitude = Double.parseDouble( String.copyValueOf( latArr, 0, 2 ) );
+            this.latitudeMinutes = Double.parseDouble( String.copyValueOf( latArr, 2, latArr.length - 2 ) );
+        }
+    }
+
+    public void setLatitudeOrientation(String latitudeOrientation){
+        switch( latitudeOrientation.toUpperCase().charAt( 0 ) ){
+            case 'S':
+                this.latitudeOrientation = Orientation.SOUTH;
+                break;
+            case 'E':
+                this.latitudeOrientation = Orientation.EAST;
+                break;
+            case 'W':
+                this.latitudeOrientation = Orientation.WEST;
+                break;
+            case 'N':
+            default:
+                this.latitudeOrientation = Orientation.NORTH;
+                break;
+        }
+    }
+
+    public void setLongitude(String longitude){
+        if( !("").equals( longitude ) ){
+            char[] lonArr = longitude.toCharArray();
+            this.longitude = Double.parseDouble( String.copyValueOf( lonArr, 0, 2 ) );
+            this.longitudeMinutes = Double.parseDouble( String.copyValueOf( lonArr, 2, lonArr.length - 2 ) );
+        }
+    }
+
+    public void setLongitudeOrientation(String longitudeOrientation){
+        switch( longitudeOrientation.toUpperCase().charAt( 0 ) ){
+            case 'N':
+                this.longitudeOrientation = Orientation.NORTH;
+                break;
+            case 'S':
+                this.longitudeOrientation = Orientation.SOUTH;
+                break;
+            case 'E':
+                this.longitudeOrientation = Orientation.EAST;
+                break;
+            case 'W':
+            default:
+                this.longitudeOrientation = Orientation.WEST;
+                break;
+        }
+    }
+
+    public void setQuality(String quality){
+        this.quality = ("").equals(quality) ? -1 : Integer.parseInt(quality);
+    }
+
+    public void setNoSatellites(String noSatellites){
+        this.noSatellites = ("").equals(noSatellites) ? -1 : Integer.parseInt(noSatellites);
+    }
+
+    public void setHorDilution(String horDilution){
+        this.horDilution = ("").equals(horDilution) ? -1 : Double.parseDouble(horDilution);
+    }
+
+    public void setAltitudeAboveSea(String altitudeAboveSea){
+        this.altitudeAboveSea = ("").equals(altitudeAboveSea) ? -1 : Double.parseDouble(altitudeAboveSea);
+    }
+
+    public void setGeoidHeight(String geoidHeight){
+        this.geoidHeight = ("").equals(geoidHeight) ? -1 : Double.parseDouble(geoidHeight);
+    }
+
+    public void setDgpsElapsedTime(String dgpsElapsedTime){
+        this.dgpsElapsedTime = ("").equals(dgpsElapsedTime) ? -1 : Integer.parseInt(dgpsElapsedTime);
+    }
+
+    public void setDgpsStationId(String dgpsStationId){
+        this.dgpsStationId = ("").equals(dgpsStationId) ? -1 : Integer.parseInt(dgpsStationId);
     }
 
     @Override
