@@ -29,7 +29,7 @@ public class MapViewer extends JFrame {
         this.image.addMouseMotionListener( new MouseMotionAdapter() {
             @Override
             public void mouseMoved( MouseEvent mouseEvent ){
-                drawPointer( mouseEvent.getX(), mouseEvent.getY() );
+            drawPointer( mouseEvent.getX(), mouseEvent.getY() );
             }
         });
 
