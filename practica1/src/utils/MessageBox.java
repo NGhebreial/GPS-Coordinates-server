@@ -1,4 +1,4 @@
 package utils;
 
-public abstract class MessageBox implements Callback {
+public abstract class MessageBox implements Callback{
 }

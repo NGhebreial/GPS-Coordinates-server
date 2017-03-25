@@ -1,7 +1,7 @@
 package entry;
 
 import utils.GpggaMessage;
-import utils.GpggaParser;
+import utils.UTMConverter;
 import views.MapViewer;
 
 import javax.swing.*;
@@ -27,14 +27,14 @@ public class main {
         if( !message.isFixedData() ){
             System.out.println("No fixed data!!");
         }else{
-        	GpggaParser.setup(
+        	UTMConverter.setup(
                     40.0,
                     23.429,
                     03.0,
                     37.619,
                     true
             );
-            System.out.println("Calculated: Norting -> " + GpggaParser.getUMTNorting() + " Easting -> " + GpggaParser.getUMTEasting());
+            System.out.println("Calculated: Norting -> " + UTMConverter.getUMTNorting() + " Easting -> " + UTMConverter.getUMTEasting());
         }
     }
 

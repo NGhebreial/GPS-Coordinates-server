@@ -5,20 +5,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
-public class GpggaReceiver extends Thread {
+public class GpggaReceiver <T extends MessageBox> extends Thread {
 
     private Socket connection;
-    private MessageBox box;
+    private T box;
 
-    public GpggaReceiver(MessageBox box){
+    public GpggaReceiver(T box){
         this("localhost", 9090, box);
     }
 
-    public GpggaReceiver(String addr, MessageBox box){
+    public GpggaReceiver(String addr, T box){
         this(addr, 9090, box);
     }
 
-    public GpggaReceiver(String addr, int port, MessageBox box){
+    public GpggaReceiver(String addr, int port, T box){
         try {
             this.connection = new Socket(addr, port);
             this.box = box;

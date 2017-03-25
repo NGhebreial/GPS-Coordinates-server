@@ -27,14 +27,14 @@ public class GpggaBox extends MessageBox {
             if( !message.isFixedData() ){
                 System.out.println("No fixed data!!");
             }else{
-                GpggaParser.setup(
+                UTMConverter.setup(
                         message.getLatitude(),
                         message.getLatitudeMinutes(),
                         message.getLongitude(),
                         message.getLongitudeMinutes(),
                         message.getLongitudeOrientation() == GpggaMessage.Orientation.WEST
                 );
-                System.out.println("Calculated: Norting -> " + GpggaParser.getUMTNorting() + " Easting -> " + GpggaParser.getUMTEasting());
+                System.out.println("Calculated: Norting -> " + UTMConverter.getUMTNorting() + " Easting -> " + UTMConverter.getUMTEasting());
             }
         }
     }
