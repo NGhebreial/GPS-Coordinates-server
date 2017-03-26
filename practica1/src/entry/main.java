@@ -1,6 +1,5 @@
 package entry;
 
-import utils.CoordsCalculator;
 import utils.GpggaMessage;
 import utils.UTMConverter;
 import views.MapViewer;
@@ -8,7 +7,9 @@ import views.MapViewer;
 import javax.swing.*;
 
 public class main {
+
 	private static MapViewer map;
+
     public static void startUI(){
         map = new MapViewer();
         // map.drawPointer( 0, 0 );

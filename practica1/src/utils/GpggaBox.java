@@ -1,13 +1,17 @@
 package utils;
 
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class GpggaBox extends MessageBox {
 
     private String filter;
+    private ArrayList<Point2D.Double> buffer;
 
     public GpggaBox(){
         this.filter = "$GPGGA";
+        this.buffer = new ArrayList<Point2D.Double>();
     }
 
     private boolean filter(String data){

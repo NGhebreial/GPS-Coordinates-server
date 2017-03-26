@@ -2,8 +2,6 @@ package views;
 
 
 import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 
 public class MapViewer extends JFrame {
 
