@@ -9,26 +9,15 @@ import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class main {
 
-  private static MapViewer map;
+    private static MapViewer map;
+    private static Semaphore ready;
 
     public static void startUI(){
-        map = new MapViewer();
-
-        double[] latit = getLatitTestPoints();
-        double[] longit = getLongitTestPoints();
-        List<Point2D> pointList = initTestPoints(latit, longit);
-        CoordsCalculator coords = initCoords();
-
-        for (int i = 0 ; i < pointList.size(); i++) {
-            Point2D.Double point = coords.translate(pointList.get( i ).getX(), true, pointList.get( i ).getY(), true);
-            System.out.println( "[" + ( i + 1 ) + "]\t(" + latit[ i ] + "," + longit[ i ] + ") -> " +
-                    (int) ( point.getX() ) + "," + (int) ( point.getY() )
-            );
-            map.drawPointer((int)point.getX(), (int)point.getY());
-        }
+        map = new MapViewer(ready);
     }
     public static void doMap(){
         SwingUtilities.invokeLater( new Runnable() {
@@ -117,8 +106,27 @@ public class main {
     }
 
     public static void main( String[] args ){
+        ready = new Semaphore( 0 );
         // test();
         doMap();
+        try {
+            ready.acquire();
+            double[] latit = getLatitTestPoints();
+            double[] longit = getLongitTestPoints();
+            List<Point2D> pointList = initTestPoints(latit, longit);
+            CoordsCalculator coords = initCoords();
+
+            for (int i = 0 ; i < pointList.size(); i++) {
+                Point2D.Double point = coords.translate(pointList.get( i ).getX(), true, pointList.get( i ).getY(), true);
+                System.out.println( "[" + ( i + 1 ) + "]\t(" + latit[ i ] + "," + longit[ i ] + ") -> " +
+                        (int) ( point.getX() ) + "," + (int) ( point.getY() )
+                );
+                map.drawPointer((int)point.getX(), (int)point.getY());
+            }
+            ready.release();
+        }catch( InterruptedException e ) {
+            e.printStackTrace();
+        }
         // GpggaReceiver receiver = new GpggaReceiver("192.168.1.134", 9090, new GpggaBox());
         // receiver.start();
         // try {
