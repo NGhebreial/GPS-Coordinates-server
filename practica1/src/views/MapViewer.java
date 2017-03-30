@@ -13,12 +13,9 @@ public class MapViewer extends JFrame {
     private JLabel image;
     private static final int MAX_PAINT_TRACE = 160;
     private int painted;
-    private Semaphore readyState;
 
-    public MapViewer( Semaphore ready ){
+    public MapViewer(){
         super("Map Preview");
-
-        this.readyState = ready;
 
         this.painted = 0;
 
@@ -33,15 +30,6 @@ public class MapViewer extends JFrame {
         this.image.setIcon( img );
         this.panel.add( image );
 
-        this.image.addMouseMotionListener( new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved( MouseEvent mouseEvent ){
-                if( readyState.availablePermits() == 0 ){
-                    readyState.release();
-                }
-                //drawPointer( mouseEvent.getX(), mouseEvent.getY() );
-            }
-        });
 
         this.pack();
         this.setVisible( true );
@@ -52,7 +40,7 @@ public class MapViewer extends JFrame {
             this.panel.repaint();
             this.painted = 0;
         }
-        this.image.getGraphics().fillOval( x, y, 10, 10 );
+        this.image.getGraphics().fillOval( x, y, 100, 100 );
     }
 
 }

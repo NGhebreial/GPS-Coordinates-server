@@ -1,5 +1,6 @@
 package entry;
 
+import utils.Controller;
 import utils.CoordsCalculator;
 import utils.GpggaMessage;
 import utils.UTMConverter;
@@ -14,10 +15,9 @@ import java.util.concurrent.Semaphore;
 public class main {
 
     private static MapViewer map;
-    private static Semaphore ready;
 
     public static void startUI(){
-        map = new MapViewer(ready);
+        map = new MapViewer();
     }
     public static void doMap(){
         SwingUtilities.invokeLater( new Runnable() {
@@ -34,28 +34,26 @@ public class main {
         if( !message.isFixedData() ){
             System.out.println("No fixed data!!");
         }else{
-          UTMConverter.setup(
-                    40.0,
+        	UTMConverter utm= new UTMConverter(40.0,
                     23.429,
                     03.0,
                     37.619,
-                    true
-            );
-            System.out.println("Calculated: Norting -> " + UTMConverter.getUMTNorting() + " Easting -> " + UTMConverter.getUMTEasting());
-            double north = UTMConverter.getUMTNorting();
-            double east = UTMConverter.getUMTEasting();
+                    true);
+            System.out.println("Calculated: Norting -> " + utm.getUMTNorting() + " Easting -> " + utm.getUMTEasting());
+            double north = utm.getUMTNorting();
+            double east = utm.getUMTEasting();
             
         }
     }
 
     public static CoordsCalculator initCoords(){
-        UTMConverter.setup(40.392132, 0.0, -3.638561, 0.0, true);
-        double imUpX = UTMConverter.getUMTNorting();
-        double imUpY = UTMConverter.getUMTEasting();
+    	UTMConverter utm= new UTMConverter(40.392132, 0.0, -3.638561, 0.0, true);
+        double imUpX = utm.getUMTNorting();
+        double imUpY = utm.getUMTEasting();
 
-        UTMConverter.setup(40.386382, 0.0, -3.620250, 0.0, true);
-        double imDownX = UTMConverter.getUMTNorting();
-        double imDownY = UTMConverter.getUMTEasting();
+        utm= new UTMConverter(40.386382, 0.0, -3.620250, 0.0, true);
+        double imDownX = utm.getUMTNorting();
+        double imDownY = utm.getUMTEasting();
 
         CoordsCalculator coords = new CoordsCalculator(imUpX, imUpY, imDownX, imDownY);
         return coords;
@@ -98,35 +96,40 @@ public class main {
         List<Point2D> pointList = new ArrayList<Point2D>();
 
         for (int i = 0 ; i < latit.length ; i++) {
-            UTMConverter.setup( latit[i], 0.0, longit[i], 0.0, true );
-            pointList.add( new Point2D.Double( UTMConverter.getUMTNorting(), UTMConverter.getUMTEasting() ));
+        	UTMConverter utm= new UTMConverter( latit[i], 0.0, longit[i], 0.0, true );
+            pointList.add( new Point2D.Double( utm.getUMTNorting(), utm.getUMTEasting() ));
         }
 
         return pointList;
     }
 
     public static void main( String[] args ){
-        ready = new Semaphore( 0 );
         // test();
-        doMap();
-        try {
-            ready.acquire();
-            double[] latit = getLatitTestPoints();
-            double[] longit = getLongitTestPoints();
-            List<Point2D> pointList = initTestPoints(latit, longit);
-            CoordsCalculator coords = initCoords();
-
-            for (int i = 0 ; i < pointList.size(); i++) {
-                Point2D.Double point = coords.translate(pointList.get( i ).getX(), true, pointList.get( i ).getY(), true);
-                System.out.println( "[" + ( i + 1 ) + "]\t(" + latit[ i ] + "," + longit[ i ] + ") -> " +
-                        (int) ( point.getX() ) + "," + (int) ( point.getY() )
-                );
-                map.drawPointer((int)point.getX(), (int)point.getY());
-            }
-            ready.release();
-        }catch( InterruptedException e ) {
-            e.printStackTrace();
-        }
+    	Controller c = new Controller("192.168.43.1", 9090);
+    	c.start();
+    	try {
+			c.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//        try {
+//            double[] latit = getLatitTestPoints();
+//            double[] longit = getLongitTestPoints();
+//            List<Point2D> pointList = initTestPoints(latit, longit);
+//            CoordsCalculator coords = initCoords();
+//
+//            for (int i = 0 ; i < pointList.size(); i++) {
+//                Point2D.Double point = coords.translate(pointList.get( i ).getX(), true, pointList.get( i ).getY(), true);
+//                System.out.println( "[" + ( i + 1 ) + "]\t(" + latit[ i ] + "," + longit[ i ] + ") -> " +
+//                        (int) ( point.getX() ) + "," + (int) ( point.getY() )
+//                );
+//                map.drawPointer((int)point.getX(), (int)point.getY());
+//            }
+//            ready.release();
+//        }catch( InterruptedException e ) {
+//            e.printStackTrace();
+//        }
         // GpggaReceiver receiver = new GpggaReceiver("192.168.1.134", 9090, new GpggaBox());
         // receiver.start();
         // try {
