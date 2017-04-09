@@ -65,7 +65,7 @@ public class GpggaMessage {
             // Not a gpgga packet
             this.fixedData = false;
         }else{
-            this.setQuality( tokens.length > 6?tokens[ 6 ]:"" );
+            this.setQuality( tokens.length > 6? tokens[ 6 ]:"" );
             if( this.quality <= 0 || !isValid( rawMsg ) ){
                 // No fixed data
                 this.fixedData = false;
@@ -197,9 +197,14 @@ public class GpggaMessage {
 
     public void setLatitude(String latitude){
         if( !("").equals(latitude) ){
-            char[] latArr = latitude.toCharArray();
-            this.latitude = Double.parseDouble( String.copyValueOf( latArr, 0, 2 ) );
-            this.latitudeMinutes = Double.parseDouble( String.copyValueOf( latArr, 2, latArr.length - 2 ) );
+        	//1 --> minutes
+        	String[] latSplit = latitude.split(Pattern.quote("."));
+        	//Degrees and minutes            
+            String lat1 = latSplit[0].substring(0, latSplit[0].length() - 2);
+            String lat2 = latSplit[0].substring(latSplit[0].length() - 2);
+            this.latitude = Double.parseDouble( lat1 );
+            this.latitudeMinutes = Double.parseDouble( lat2 + "." + latSplit[1].substring(0, 3) );
+            
         }
     }
 
@@ -223,9 +228,14 @@ public class GpggaMessage {
 
     public void setLongitude(String longitude){
         if( !("").equals( longitude ) ){
-            char[] lonArr = longitude.toCharArray();
-            this.longitude = Double.parseDouble( String.copyValueOf( lonArr, 0, 2 ) );
-            this.longitudeMinutes = Double.parseDouble( String.copyValueOf( lonArr, 2, lonArr.length - 2 ) );
+        	//1 --> minutes
+        	String[] lonSplit = longitude.split(Pattern.quote("."));
+        	//Degrees and minutes            
+            String lon1 = lonSplit[0].substring(0, lonSplit[0].length() - 2);
+            String lon2 = lonSplit[0].substring(lonSplit[0].length() - 2);
+            this.longitude = Double.parseDouble( lon1 );
+            this.longitudeMinutes = Double.parseDouble( lon2 + "." + lonSplit[1].substring(0, 3) );
+            
         }
     }
 
@@ -279,6 +289,7 @@ public class GpggaMessage {
     public String toString(){
         return (
             "rawMsg: " + rawMsg +
+            "\nfixedData: " + fixedData +
             "\ntype: " + type +
             "\ntime: " + time +
             "\nlatitude: " + latitude +
@@ -296,4 +307,5 @@ public class GpggaMessage {
             "\ndgpsStationId: " + dgpsStationId
         );
     }
+    
 }
