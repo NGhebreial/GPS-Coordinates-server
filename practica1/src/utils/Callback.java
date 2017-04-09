@@ -2,5 +2,5 @@ package utils;
 
 public interface Callback {
 
-    public void call(String data);
+    public void call(Object data);
 }
