@@ -3,24 +3,25 @@ package views;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.Semaphore;
 
 public class MapViewer extends JFrame {
 
     private JPanel panel;
     private JLabel image;
-    private static final int MAX_PAINT_TRACE = 160;
+    private static final int MAX_PAINT_TRACE = Integer.MAX_VALUE-1;
     private int painted;
 
     private int imWidth;
     private int imHeight;
 
-    public MapViewer(){
+    public MapViewer( Semaphore semaphore ){
         super("Map Preview");
 
         this.painted = 0;
 
         this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-        ImageIcon img = new ImageIcon( "res/upm.png" );
+        ImageIcon img = new ImageIcon( "res/insia.png" );
 
         this.panel = (JPanel)this.getContentPane();
         this.panel.setPreferredSize( new Dimension(img.getIconWidth(), img.getIconHeight()) );
@@ -32,9 +33,9 @@ public class MapViewer extends JFrame {
         this.image.setIcon( img );
         this.panel.add( image );
 
-
         this.pack();
         this.setVisible( true );
+        semaphore.release();
     }
 
     public void drawPointer(int x, int y){
@@ -42,8 +43,8 @@ public class MapViewer extends JFrame {
             this.panel.repaint();
             this.painted = 0;
         }
-        this.image.getGraphics().fillOval( x, y, 15, 15 );
-        System.out.println("Painting at " + x + ", " + y);
+        this.image.getGraphics().fillOval( x, y, 12, 12 );
+        System.out.println("Painting at " + x + ", " + y); 
     }
 
     public int getImWidth(){
