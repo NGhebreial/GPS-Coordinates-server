@@ -19,9 +19,6 @@ public class CoordsCalculator {
 	private double imWidth;
 	private double imHeight;
 
-	// One pixel 100 meters
-	private int imPixelRatio;
-
 	public enum COORDS_SETTINGS {
 		UP_LAT_KEY
 		, LEFT_LON_KEY
@@ -29,11 +26,11 @@ public class CoordsCalculator {
 		, RIGHT_LON_KEY
 		, IM_WIDTH_KEY
 		, IM_HEIGHT_KEY
-		, IM_PIXEL_RATIO_KEY
 	}
 
 	public CoordsCalculator(){
 		UTMConverter utm = new UTMConverter();
+		// Default UPM
 		utm.setup(40.392132,0.0, 3.638561, 0.0, true );
 		this.imUpLat = utm.getUMTNorting();
 		this.imLeftLon = utm.getUMTEasting();
@@ -42,7 +39,6 @@ public class CoordsCalculator {
 		this.imRightLon = utm.getUMTEasting();
 		this.imWidth = 1362;
 		this.imHeight = 644;
-		this.imPixelRatio = 100;
 	}
 
 	public CoordsCalculator(double imUpLat, double imLeftLon, double imDownLat, double imRightLon){
@@ -54,9 +50,8 @@ public class CoordsCalculator {
 		this.imLeftLon = imLeftLon;
 		this.imDownLat = imDownLat;
 		this.imRightLon = imRightLon;
-		this.imWidth = 1362;
-		this.imHeight = 644;
-		this.imPixelRatio = 100;
+		this.imWidth = imWidth;
+		this.imHeight = imHeight;
 	}
 
 	public CoordsCalculator(HashMap<COORDS_SETTINGS, Double> imCoords, HashMap<COORDS_SETTINGS, Integer> imCfg){
@@ -66,7 +61,6 @@ public class CoordsCalculator {
 		this.imRightLon = imCoords.get(RIGHT_LON_KEY);
 		this.imWidth = imCfg.get(IM_WIDTH_KEY);
 		this.imHeight = imCfg.get(IM_HEIGHT_KEY);
-		this.imPixelRatio = imCfg.get(IM_PIXEL_RATIO_KEY);
 	}
 
 	public Point2D.Double translate( double lat, boolean isNorth, double lon, boolean isWest){
