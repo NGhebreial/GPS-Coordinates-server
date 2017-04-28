@@ -6,6 +6,7 @@ public class GpggaBox extends MessageBox {
 
 	private String filter;
 	private MessageBox chain;
+	private MessageBox rawChain;
 
 	public GpggaBox(){
 		this.filter = "$GPGGA";
@@ -30,8 +31,11 @@ public class GpggaBox extends MessageBox {
 		String data = (String)d;
 		if( this.filter(data) ){
 			GpggaMessage message = new GpggaMessage( data );
+			if( rawChain != null ){
+			    rawChain.call( message );
+            }
 			if( !message.isFixedData() ){
-				System.out.println("No fixed data!!");
+				// System.out.println("No fixed data!!");
 			}else{
 				UTMConverter utm= new UTMConverter();
 				utm.setup(  message.getLatitude(),
@@ -39,7 +43,7 @@ public class GpggaBox extends MessageBox {
 						message.getLongitude(),
 						message.getLongitudeMinutes(),
 						message.getLongitudeOrientation() == GpggaMessage.Orientation.WEST);
-				System.out.println("Calculated: Norting -> " + utm.getUMTNorting() + " Easting -> " + utm.getUMTEasting());
+				// System.out.println("Calculated: Norting -> " + utm.getUMTNorting() + " Easting -> " + utm.getUMTEasting());
 				if( chain != null ){
 					chain.call(utm);
 				}                
@@ -50,4 +54,7 @@ public class GpggaBox extends MessageBox {
 	public void setChain(MessageBox chain) {
 		this.chain = chain;
 	}
+	public void setRawChain(MessageBox chain){
+	    this.rawChain = chain;
+    }
 }

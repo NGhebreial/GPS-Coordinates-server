@@ -10,6 +10,7 @@ public class Controller extends Thread {
 
 	private MapViewer map;
 	private GpggaReceiver<GpggaBox> receiver;
+	private CoordsServer server;
 
 	private GpggaBox box;
 
@@ -22,6 +23,7 @@ public class Controller extends Thread {
 	    doMap(semaphore);
 		box = new GpggaBox();
 		receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+		this.server = new CoordsServer( 8080 );
 	}
 	
 	public CoordsCalculator initCoords(){
@@ -51,8 +53,15 @@ public class Controller extends Thread {
 				map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
 			}
 		});
+		box.setRawChain( new MessageBox() {
+            @Override
+            public void call( Object data ){
+                server.apendToBuffer( (GpggaMessage) data );
+            }
+        } );
         try {
             semaphore.acquire();
+            this.server.start();
             receiver.start();
         }catch( InterruptedException e ) {
             e.printStackTrace();
