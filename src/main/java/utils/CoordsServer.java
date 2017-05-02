@@ -2,13 +2,10 @@ package utils;
 
 import org.java_websocket.WebSocket;
 
-import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.util.Enumeration;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -21,53 +18,26 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
     private ArrayBlockingQueue<WebSocket> pool;
     private AtomicBoolean serving;
     private int port;
-    private ArrayBlockingQueue<GpggaMessage> buffer;
+    private LinkedBlockingQueue<GpggaMessage> buffer;
 
     public CoordsServer(int port){
         this.port = port;
         this.pool = new ArrayBlockingQueue<WebSocket>(10);
         this.serving = new AtomicBoolean( false );
-        this.buffer = new ArrayBlockingQueue<GpggaMessage>(10);
+        this.buffer = new LinkedBlockingQueue<GpggaMessage>();
     }
 
     private void setup(){
-        try {
-            this.serverSocket = new ServerSocket(this.port);
-            InetSocketAddress address = new InetSocketAddress( "localhost", 9090 );
-            this.socketConnector = new SocketConnector(address, this);
-        }catch( IOException e ) {
-            e.printStackTrace();
-        }
-    }
-
-    private  InetAddress getInetAddress(){
-        InetAddress ret = null;
-        try{
-            for( Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements() && ret == null; ){
-                NetworkInterface intf = en.nextElement();
-                for( Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ){
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if( !inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && !inetAddress.isAnyLocalAddress() ){
-                        ret = inetAddress;
-                    }
-                }
-            }
-        }catch( Exception ex ){
-            ret = null;
-        }finally{
-            return ret;
-        }
+        InetSocketAddress address = new InetSocketAddress( "localhost", this.port );
+        this.socketConnector = new SocketConnector(address, this);
     }
 
     private void printInfo(){
-        InetAddress addr = this.getInetAddress();
-        if( addr != null ){
-            System.out.println( "Address: " + addr.getHostAddress() + ":" + this.port );
-        }
+        System.out.println( "Address: " + this.socketConnector.getAddress() );
     }
 
     private void startListening(){
-        this.socketConnector.run();
+        this.socketConnector.start();
     }
 
     private String prepareMessage(GpggaMessage msg){

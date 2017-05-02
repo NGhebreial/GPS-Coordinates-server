@@ -4,9 +4,7 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
-import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -14,7 +12,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class SocketConnector extends WebSocketServer {
 
-    private WeakReference<ServerSocket> serverRef;
     private OnConnectionAdded pool;
     private boolean ready;
     private AtomicBoolean listening;
@@ -28,23 +25,29 @@ public class SocketConnector extends WebSocketServer {
 
     @Override
     public void onStart(){
+        System.out.println("WebSocket OnStart");
         this.ready = true;
+        this.listening.set( true );
     }
 
     @Override
     public void onOpen( WebSocket webSocket, ClientHandshake clientHandshake ){
+        System.out.println("SocketConnector 'onOpen' " + clientHandshake.getResourceDescriptor());
         if( this.listening.get() ){
+            System.out.println("Adding connection");
             this.pool.onConnectionAdded( webSocket );
         }
     }
 
     @Override
     public void onClose( WebSocket webSocket, int i, String s, boolean b ){
+        System.out.println("SocketConnector 'onClose'");
         this.pool.onConnectionRemoved( webSocket );
     }
 
     @Override
     public void onMessage( WebSocket webSocket, String s ){
+        System.out.println("SocketConnector 'onMessage'");
         // TODO
     }
 

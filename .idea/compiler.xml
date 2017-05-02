@@ -11,9 +11,9 @@
       <entry name="!?*.kt" />
       <entry name="!?*.clj" />
     </wildcardResourcePatterns>
-    <bytecodeTargetLevel target="1.8">
-      <module name="Practicas_main" target="1.8" />
-      <module name="Practicas_test" target="1.8" />
+    <bytecodeTargetLevel target="1.7">
+      <module name="Practica_main" target="1.8" />
+      <module name="Practica_test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -18,12 +18,12 @@ public class Controller extends Thread {
 
 	private Semaphore semaphore;
 
-	public Controller(String addr, int port){
+	public Controller(String addr, int port, int coordServerPort){
 		semaphore = new Semaphore( 0 );
 	    doMap(semaphore);
 		box = new GpggaBox();
 		receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
-		this.server = new CoordsServer( 8080 );
+		this.server = new CoordsServer( coordServerPort );
 	}
 	
 	public CoordsCalculator initCoords(){
@@ -61,8 +61,9 @@ public class Controller extends Thread {
         } );
         try {
             semaphore.acquire();
-            this.server.start();
-            receiver.start();
+			System.out.println("Starting receiver and coords server");
+			this.server.start();
+            this.receiver.start();
         }catch( InterruptedException e ) {
             e.printStackTrace();
         }
