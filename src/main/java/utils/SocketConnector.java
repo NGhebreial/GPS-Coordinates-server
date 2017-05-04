@@ -34,7 +34,6 @@ public class SocketConnector extends WebSocketServer {
     public void onOpen( WebSocket webSocket, ClientHandshake clientHandshake ){
         System.out.println("SocketConnector 'onOpen' " + clientHandshake.getResourceDescriptor());
         if( this.listening.get() ){
-            System.out.println("Adding connection");
             this.pool.onConnectionAdded( webSocket );
         }
     }

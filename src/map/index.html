@@ -4,30 +4,20 @@
 	<title>Map</title>
 	<meta charset="utf-8">
   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+  <link rel="stylesheet" type="text/css" href="index.css">
+  <script
+		src="https://code.jquery.com/jquery-3.2.1.min.js"
+		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+		crossorigin="anonymous">
+	</script>
 </head>
 <body>
-	<div id='printoutPanel'></div>
-  <div id='myMap' style='width: 100vw; height: 100vh;'></div>
-	<script type="text/javascript">
-		function loadMapScenario(){
-			var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
-			    credentials: 'Am808_tBNMI958nFN95FX2oBKxPNOahsq7vyuUA-ZbPuyiNTUr7L07irajvZl0rh',
-			    center: new Microsoft.Maps.Location(51.50632, -0.12714),
-			    mapTypeId: Microsoft.Maps.MapTypeId.aerial,
-			    zoom: 15
-			});
-		}
-		function messageCallback(message){
-			const data = JSON.parse(message.data)
-			console.log('Got a message', data)
-		}
-		function grabData(){
-			console.log('WebSocket started')
-			const socket = new WebSocket('ws://localhost:8978')
-			socket.onmessage = messageCallback
-		}
-		grabData()
-	</script>
-  <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario' async defer></script>
+	<div id="board" class="hidden">
+		<div id="printoutPanel"></div>
+  	<div id="map"></div>
+	</div>
+	<div id="loader" class="hidden"></div>
+	<script type="text/javascript" src="index.js"></script>
+	<script type="text/javascript" src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
 </body>
 </html>
