@@ -1,5 +1,10 @@
-package utils;
+package controllers;
 
+import gpgga.GpggaBox;
+import gpgga.GpggaReceiver;
+import math.CoordsCalculator;
+import utils.MessageBox;
+import math.UTMConverter;
 import views.MapViewer;
 
 import javax.swing.*;

@@ -1,4 +1,6 @@
-package utils;
+package gpgga;
+
+import utils.MessageBox;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,6 +1,4 @@
-package entry;
-
-import utils.Controller;
+package controllers;
 
 public class main {
 

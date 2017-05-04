@@ -1,9 +1,9 @@
-package utils;
+package math;
 
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 
-import static utils.CoordsCalculator.COORDS_SETTINGS.*;
+import static math.CoordsCalculator.COORDS_SETTINGS.*;
 
 public class CoordsCalculator {
 
