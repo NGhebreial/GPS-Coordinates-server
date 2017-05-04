@@ -6,7 +6,7 @@ let center = null
 let zoom = null
 
 function loadMapScenario(){
-	console.log('Load the map')
+	console.log('API Ready')
 	if( !viewReady && center ){
 		loadMap(center)
 	}
@@ -22,6 +22,7 @@ function loadMap( center, zoom ){
 			mapTypeId: Microsoft.Maps.MapTypeId.aerial,
 			zoom: zoom
 		})
+		console.log('Load the map on', center, 'with zoom', zoom)
 	}
 }
 
@@ -36,7 +37,7 @@ function pointAsLocation( point ){
 			? map.tryPixelToLocation(point)
 			: (point instanceof Microsoft.Maps.Location
 					? point
-					: new Microsoft.Maps.Location(point)
+					: new Microsoft.Maps.Location(point.latitude, point.longitude)
 				)
 	)
 }
@@ -58,7 +59,7 @@ function centerMap( point ) {
 	}
 	const target = pointAsLocation( point )
 	if( target ){
-		map.setView({ center: target })
+		map.setView({ center: target, zoom: map.getZoom() })
 	}
 }
 
@@ -125,15 +126,19 @@ $(() => {
 
 	socket.onmessage = ( message ) => {
 		const data = JSON.parse(message.data)
+		console.log('Got a message', data)
+		const point = new Microsoft.Maps.Location(data.point.latitude, data.point.longitude)
+		if( !center ){
+			center = point
+		}
 		if( !viewReady ){
-			center = data.point
 		}else if( !map ){
 			makeMapVisible()
-			loadMap(data.point)
+			loadMap(center)
+			drawPoint(center)
 		}else{
-			drawPoint(data.point)
+			drawPoint(point)
 		}
-		console.log('Got a message', data)
 	}
 
 })
