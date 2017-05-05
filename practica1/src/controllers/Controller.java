@@ -3,14 +3,13 @@ package controllers;
 import gpgga.GpggaBox;
 import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
-import math.Point;
-import math.SpeedChecker;
-import math.UTMConverter;
+import math.SpeedCalculator;
 import utils.MessageBox;
+import math.UTMConverter;
+import models.DataPoint;
 import views.MapViewer;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
@@ -24,12 +23,15 @@ public class Controller extends Thread {
 	private CoordsCalculator coordsCalc;
 
 	private Semaphore semaphore;
+	
+	private SpeedCalculator speed;
 
 	public Controller(String addr, int port){
 		semaphore = new Semaphore( 0 );
 	    doMap(semaphore);
 		box = new GpggaBox();
-		// receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+		receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+		speed = new SpeedCalculator();
 	}
 	
 	public CoordsCalculator initCoords(){
@@ -54,44 +56,20 @@ public class Controller extends Thread {
 			public void call(Object data) {
 				//Received data in UTM format
 				UTMConverter utm = (UTMConverter) data;
+				DataPoint calculateSpeed = speed.calculateSpeed(utm);
+				System.out.println(calculateSpeed);
 				coordsCalc = initCoords();
 				HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUMTNorting(), true, utm.getUMTEasting(), utm.isWestLongitude());
 				map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
 			}
 		});
         try {
-            System.out.println("Acquire");
             semaphore.acquire();
-            System.out.println("Released");
-            // receiver.start();
-            doPaint();
+            receiver.start();
         }catch( InterruptedException e ) {
             e.printStackTrace();
         }
 	}
-
-	private void doPaint(){
-        try {
-            Thread.sleep( 1000 );
-        }catch( InterruptedException e ) {
-            e.printStackTrace();
-        }
-        SpeedChecker sp = new SpeedChecker();
-        ArrayList<ArrayList<Point[]>> mapPoints = sp.getMap();
-        CoordsCalculator coords = initCoords();
-        for( ArrayList<Point[]> row : mapPoints ){
-            System.out.println("Row ");
-            for( Point[] points: row ){
-                for( int i = 0; i < points.length; i++ ) {
-                    HashMap<String, Integer> coodsCalculated = coords.translatetoInt(
-                            points[i].getLatitude(), true,
-                            points[i].getLongitude(), true
-                    );
-                    map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
-                }
-            }
-        }
-    }
 
 	private void doMap( final Semaphore semaphore){
 		SwingUtilities.invokeLater( new Runnable() {
