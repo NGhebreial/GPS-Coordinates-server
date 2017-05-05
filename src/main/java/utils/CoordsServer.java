@@ -82,6 +82,18 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
         }
     }
 
+    private void sendBuffer( GpggaMessage msg ){
+        if( !this.pool.isEmpty() ){
+            System.out.println("Sending message");
+            String toSend = prepareMessage( msg );
+            for( WebSocket conn : this.pool ) {
+                conn.send( toSend );
+            }
+        }else{
+            System.out.println("Empty buffer");
+        }
+    }
+
     private void cleanBuffer(){
         this.buffer.clear();
     }
@@ -95,7 +107,7 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
         System.out.println("Server done, awaiting connections");
         while( this.serving.get() ){
             if( this.pool.size() > 0 && !this.buffer.isEmpty() ){
-                sendBuffer();
+                // sendBuffer();
             // }else{
             //     cleanBuffer();
             }
@@ -117,6 +129,7 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
         if( msg.isValid() && msg.isFixedData() ){
             System.out.println( "Add to buffer" );
             this.buffer.add( msg );
+            this.sendBuffer( msg );
         }
     }
     public void stopServing(){ this.serving.set( false ); }

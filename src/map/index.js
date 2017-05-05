@@ -7,7 +7,9 @@ let zoom = null
 
 function loadMapScenario(){
 	console.log('API Ready')
-	if( !viewReady && center ){
+	if( !center ){
+		start()
+	}else	if( !viewReady && center ){
 		loadMap(center)
 	}
 	viewReady = true
@@ -119,8 +121,7 @@ function init(){
 	return getInnerBound(map.getBounds())
 }
 
-$(() => {
-
+function start(){
 	console.log('WebSocket started')	
 	const socket = new WebSocket('ws://localhost:8978')
 
@@ -131,14 +132,22 @@ $(() => {
 		if( !center ){
 			center = point
 		}
-		if( !viewReady ){
-		}else if( !map ){
+		if( !map ){
 			makeMapVisible()
 			loadMap(center)
 			drawPoint(center)
 		}else{
 			drawPoint(point)
 		}
+	}
+}
+
+$(() => {
+
+	if( !viewReady ){
+		return
+	}else{
+		start()
 	}
 
 })
