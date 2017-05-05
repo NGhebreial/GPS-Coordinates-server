@@ -3,11 +3,14 @@ package controllers;
 import gpgga.GpggaBox;
 import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
-import utils.MessageBox;
+import math.Point;
+import math.SpeedChecker;
 import math.UTMConverter;
+import utils.MessageBox;
 import views.MapViewer;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
@@ -26,7 +29,7 @@ public class Controller extends Thread {
 		semaphore = new Semaphore( 0 );
 	    doMap(semaphore);
 		box = new GpggaBox();
-		receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+		// receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
 	}
 	
 	public CoordsCalculator initCoords(){
@@ -57,12 +60,38 @@ public class Controller extends Thread {
 			}
 		});
         try {
+            System.out.println("Acquire");
             semaphore.acquire();
-            receiver.start();
+            System.out.println("Released");
+            // receiver.start();
+            doPaint();
         }catch( InterruptedException e ) {
             e.printStackTrace();
         }
 	}
+
+	private void doPaint(){
+        try {
+            Thread.sleep( 1000 );
+        }catch( InterruptedException e ) {
+            e.printStackTrace();
+        }
+        SpeedChecker sp = new SpeedChecker();
+        ArrayList<ArrayList<Point[]>> mapPoints = sp.getMap();
+        CoordsCalculator coords = initCoords();
+        for( ArrayList<Point[]> row : mapPoints ){
+            System.out.println("Row ");
+            for( Point[] points: row ){
+                for( int i = 0; i < points.length; i++ ) {
+                    HashMap<String, Integer> coodsCalculated = coords.translatetoInt(
+                            points[i].getLatitude(), true,
+                            points[i].getLongitude(), true
+                    );
+                    map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
+                }
+            }
+        }
+    }
 
 	private void doMap( final Semaphore semaphore){
 		SwingUtilities.invokeLater( new Runnable() {
