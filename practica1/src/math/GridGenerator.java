@@ -1,5 +1,8 @@
 package math;
 
+import models.DataPoint;
+import utils.Coordinate;
+
 /**
  * Created by Guillermo Echegoyen Blanco on 2016.
  */
@@ -12,8 +15,8 @@ public class GridGenerator {
     private static final int numCols = 44;
     private static final int numRows = 36;
 
-    public static Point[][] generate(){
-        Point[][] ret = new Point[numRows][numCols];
+    public static DataPoint[][] generate(){
+        DataPoint[][] ret = new models.DataPoint[numRows][numCols];
         int rowCellSize = ( maxNorth - minNorth ) / numRows;
         int colCellSize = ( maxWest - minWest ) / numCols;
         System.out.println("Grid Generator " + " rowSize " + rowCellSize + " collSize " + colCellSize);
@@ -21,9 +24,9 @@ public class GridGenerator {
             int colIncrement = ( i * rowCellSize );
             for( int j = 0; j < numCols; j++ ) {
                 int rowIncrement = ( j * colCellSize );
-                int lat = maxNorth - colIncrement;
-                int lon = minWest + rowIncrement;
-                ret[i][j] = new Point( lat, lon, 0, i, j );
+                int north = maxNorth - colIncrement;
+                int south = minWest + rowIncrement;
+                ret[i][j] = new DataPoint( (double)north, (double)south, Coordinate.NORTH );
             }
         }
         return ret;
