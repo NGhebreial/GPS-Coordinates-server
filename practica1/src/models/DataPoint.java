@@ -13,7 +13,16 @@ public class DataPoint {
 	
 	public DataPoint(){		
 	}
-	
+
+	public DataPoint(Double norting, Double easting, Coordinate coordinate){
+		this.norting = norting;
+		this.easting = easting;
+		this.speed = 0.0;
+		this.coordinate = coordinate;
+		this.bearing = 0.0;
+		this.miliseconds = System.currentTimeMillis();
+	}
+
 	public DataPoint(Double norting, Double easting, Double speed, Coordinate coordinate, Double bearing, Long miliseconds){
 		this.norting = norting;
 		this.easting = easting;
