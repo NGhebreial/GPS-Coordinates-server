@@ -2,10 +2,7 @@ package math;
 
 import models.DataPoint;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.function.Consumer;
 
 /**
  * Created by Guillermo Echegoyen Blanco on 2016.
@@ -17,17 +14,19 @@ public class Quadrant {
     private DataPoint leftDownCorner;
     private DataPoint rightDownCorner;
     private ArrayList<int[]> indexes;
+    private ArrayList<DataPoint> targets;
 
     public Quadrant( DataPoint leftUpCorner, DataPoint rightUpCorner, DataPoint leftDownCorner, DataPoint rightDownCorner, int[] index ){
         this.leftUpCorner = leftUpCorner;
         this.rightUpCorner = rightUpCorner;
         this.leftDownCorner = leftDownCorner;
         this.rightDownCorner = rightDownCorner;
-        this.indexes = new ArrayList<int[]>( 4 );
-        this.indexes.set( 0, index );
-        this.indexes.set( 1, new int[]{ index[ 0 ], index[ 1 ] + 1 } );
-        this.indexes.set( 2, new int[]{ index[ 0 ] + 1, index[ 1 ] } );
-        this.indexes.set( 3, new int[]{ index[ 0 ] + 1, index[ 1 ] + 1 } );
+        this.indexes = new ArrayList<int[]>();
+        this.indexes.add( 0, index );
+        this.indexes.add( 1, new int[]{ index[ 0 ], index[ 1 ] + 1 } );
+        this.indexes.add( 2, new int[]{ index[ 0 ] + 1, index[ 1 ] } );
+        this.indexes.add( 3, new int[]{ index[ 0 ] + 1, index[ 1 ] + 1 } );
+        this.targets = new ArrayList<DataPoint>();
     }
 
     public DataPoint getLeftUpCorner(){
@@ -63,6 +62,21 @@ public class Quadrant {
 
     public DataPoint[] asArray(){
         return new DataPoint[]{ this.leftUpCorner, this.rightUpCorner, this.leftDownCorner, this.rightDownCorner };
+    }
+
+    public void addTarget(DataPoint target){
+        this.targets.add( target );
+    }
+
+    public DataPoint[] getTargetsByOrientation( DataPoint query, int maxDiff ){
+        ArrayList<DataPoint> ret = new ArrayList<DataPoint>();
+        // Get targets based on a maximum difference in orientation
+        for(DataPoint target : targets){
+            if( target.getCoordinate().getDiff(query.getCoordinate().getValue()) <= maxDiff ){
+                ret.add( target );
+            }
+        }
+        return (DataPoint[]) ret.toArray();
     }
 
     @Override

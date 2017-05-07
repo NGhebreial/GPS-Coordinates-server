@@ -22,25 +22,50 @@ public class SpeedChecker {
     private DataPoint[][] sourceData;
     private ArrayList<ArrayList<Quadrant>> map;
 
+    // Map data
+    private static final int maxNorth = 4471000;
+    private static final int minNorth = 4470780;
+    private static final int maxWest = 446400;
+    private static final int minWest = 446220;
+    private static final int numRows = 36;
+    private static final int numCols = 44;
+
     public SpeedChecker(){
         this.dataPoints = 222;
         this.map = new ArrayList<ArrayList<Quadrant>>();
         this.data = new DataPoint[dataPoints];
-        this.sourceData = GridGenerator.generate();
+        this.sourceData = GridGenerator.generate(maxNorth, minNorth, maxWest, minWest, numRows, numCols);
         this.map = this.setMap(this.sourceData);
-        this.dumpDataFile( this.DATA_FILE, this.data, this.dataPoints );
+        this.loadDataFile( this.DATA_FILE, this.data, this.dataPoints );
+        this.matchDataWithGrid(this.data);
     }
 
-    private void dumpDataFile( String path, DataPoint[] store, int cols ){
+    private void matchDataWithGrid( DataPoint[] data ){
+        int matched = 0;
+        for(DataPoint dataPoint: data){
+            // Find the quadrant, load data on it
+            Quadrant target = this.getQuadrant( dataPoint );
+            if( target == null ){
+                System.out.println("Matched " + matched + " out of " + data.length + " points");
+                System.out.println("Max map quadrant " + this.map.get(this.map.size() -1).get(this.map.get(0).size()-1).getLeftDownCorner().toString());
+                throw new Error( "Cannot match data point with grid map " + dataPoint.toString());
+            }else{
+                ++matched;
+                target.addTarget( dataPoint );
+            }
+        }
+    }
+
+    private void loadDataFile( String path, DataPoint[] store, int cols ){
         try {
             Scanner sc = new Scanner( new BufferedInputStream( new FileInputStream( path ) ) );
             int colIdx = 0;
             while( colIdx < cols && sc.hasNextLine() ){
                 double north = sc.nextDouble();
                 double south = sc.nextDouble();
-                // TODO => Bearing
                 double speed = sc.nextInt();
-                store[colIdx++] = new DataPoint( north, south, speed, Coordinate.NORTH, 0.0, System.currentTimeMillis() );
+                Coordinate coordinate = Coordinate.values()[sc.nextInt()];
+                store[colIdx++] = new DataPoint( north, south, speed, coordinate, 0.0, System.currentTimeMillis() );
             }
             if( colIdx != cols ){
                 throw new RuntimeException( "Bad Dump File specification, expect " + cols + " got " + colIdx);
@@ -79,7 +104,7 @@ public class SpeedChecker {
         int j = 0;
         for(; i < this.map.size() && !found; i++ ) {
             ArrayList<Quadrant> row = this.map.get( i );
-            for(;j < row.size() && !(found = row.get( j ).containsIndex( index )); j++ );
+            for(j = 0;j < row.size() && !(found = row.get( j ).containsIndex( index )); j++ );
         }
         if( i < this.map.size() && j < this.map.get(i).size() ){
             ret = this.map.get( i ).get( j );
@@ -95,7 +120,7 @@ public class SpeedChecker {
         int j = 0;
         for(; i < this.map.size() && !found; i++ ) {
             ArrayList<Quadrant> row = this.map.get(i);
-            for(; j < row.size() && !(found = checkPointInBound(row.get( j ), point)); j++ );
+            for(j = 0; j < row.size() && !(found = checkPointInBound(row.get( j ), point)); j++ );
         }
         if( found ){
             ret = this.map.get( i-1 ).get( j );
@@ -107,19 +132,39 @@ public class SpeedChecker {
         return this.map;
     }
 
-    // -1 not found, 0 all right, 1 higher, 2 very high
+    // -1 not found, 0 all right, 1 higher, 2 much higher
     public int getTargetSpeed( DataPoint target ){
+        int ret = -1;
         // Try grabbing the quadrant for this point
         Quadrant contained = this.getQuadrant( target );
         if( contained != null ){
+            // Maximum orientation difference
+            DataPoint[] matches = contained.getTargetsByOrientation( target, 1 );
+            if( matches.length > 0){
+                // Conservative way: if in doubt, return a very high value
+                // No car goes faster than 1000kms/h
+                double lowestSpeed = 1000;
+                double currentSpeed = target.getSpeed();
+                for( DataPoint match : matches ){
+                    lowestSpeed = Math.min(lowestSpeed, match.getSpeed());
+                }
+                double tenPercent = lowestSpeed * 0.1;
+                if( currentSpeed < lowestSpeed - tenPercent ){
+                    ret = 0;
+                }else if( lowestSpeed - tenPercent < currentSpeed && currentSpeed < lowestSpeed + tenPercent ){
+                    ret = 1;
+                }else{
+                    ret = 2;
+                }
+            }
         }
-        return -1;
+        return ret;
     }
 
     public static void main( String[] args ){
         SpeedChecker sp = new SpeedChecker();
         ArrayList<ArrayList<Quadrant>> themap = sp.getMap();
-        DataPoint target = themap.get(0).get(0).getLeftUpCorner();
+        DataPoint target = themap.get(6).get(6).getLeftUpCorner();
         DataPoint testPoint = new DataPoint( target.getNorting(), target.getEasting(), target.getCoordinate() );
         System.out.println(testPoint);
         System.out.println("Check " + sp.getQuadrant( testPoint ));

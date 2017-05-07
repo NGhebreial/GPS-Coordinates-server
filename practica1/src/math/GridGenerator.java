@@ -8,25 +8,36 @@ import utils.Coordinate;
  */
 public class GridGenerator {
 
-    private static final int maxNorth = 4471000;
-    private static final int minNorth = 4470780;
-    private static final int maxWest = 446400;
-    private static final int minWest = 446240;
-    private static final int numCols = 44;
-    private static final int numRows = 36;
+    public static DataPoint[][] generate(int maxNorth, int minNorth, int maxWest, int minWest, int numOfRows, int numOfCols){
+        double rows = ((double)(maxNorth - minNorth) / (double) numOfRows);
+        int rowCellSize = (int)Math.floor(rows);
 
-    public static DataPoint[][] generate(){
+        int numRows = numOfRows;
+        if( rows != Math.floor( rows ) ){
+            numRows++;
+        }
+
+        double cols = ((double)(maxWest - minWest) / (double) numOfCols);
+        int colCellSize = (int)Math.floor(cols);
+
+        int numCols = numOfCols;
+        if( cols != Math.floor( cols ) ){
+            numCols++;
+        }
+
+        // Todo: Scale decimal diff to rowCellSize
         DataPoint[][] ret = new models.DataPoint[numRows][numCols];
-        int rowCellSize = ( maxNorth - minNorth ) / numRows;
-        int colCellSize = ( maxWest - minWest ) / numCols;
-        System.out.println("Grid Generator " + " rowSize " + rowCellSize + " collSize " + colCellSize);
+        System.out.println("Grid Generator "  + " numrows, numcols " + numRows + " " + numCols + " rowSize " + rowCellSize + " collSize " + colCellSize + " maxNorth, minNorth: " + maxNorth + ", " + minNorth + " maxWest, minWest: " + maxWest + ", " + minWest);
         for( int i = 0; i < numRows; i++ ) {
             int colIncrement = ( i * rowCellSize );
             for( int j = 0; j < numCols; j++ ) {
                 int rowIncrement = ( j * colCellSize );
                 int north = maxNorth - colIncrement;
                 int south = minWest + rowIncrement;
-                ret[i][j] = new DataPoint( (double)north, (double)south, Coordinate.NORTH );
+                ret[i][j] = new DataPoint( (double)north, (double)south, Coordinate.UNKNOWN );
+            }
+            if( i == numRows -1){
+                System.out.println( "Last grid " + ret[i][numCols-1].toString());
             }
         }
         return ret;
