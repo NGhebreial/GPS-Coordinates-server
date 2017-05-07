@@ -4,10 +4,12 @@ import gpgga.GpggaBox;
 import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
 import math.SpeedCalculator;
+import utils.Coordinate;
 import utils.MessageBox;
 import math.UTMConverter;
 import models.DataPoint;
 import views.MapViewer;
+import views.SpeedViewer;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -22,16 +24,21 @@ public class Controller extends Thread {
 
 	private CoordsCalculator coordsCalc;
 
-	private Semaphore semaphore;
+	private Semaphore semaphoreMap;
+	private Semaphore semaphoreSpeed;
 	
 	private SpeedCalculator speed;
+	
+	private SpeedViewer speedViewer;
 
 	public Controller(String addr, int port){
-		semaphore = new Semaphore( 0 );
-	    doMap(semaphore);
+		semaphoreMap = new Semaphore( 0 );
+		semaphoreSpeed = new Semaphore( 0 );
+	    doMap(semaphoreMap);
+	    doSpeedViewer(semaphoreSpeed);
 		box = new GpggaBox();
 		receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
-		speed = new SpeedCalculator();
+		speed = new SpeedCalculator();		
 	}
 	
 	public CoordsCalculator initCoords(){
@@ -57,25 +64,38 @@ public class Controller extends Thread {
 				//Received data in UTM format
 				UTMConverter utm = (UTMConverter) data;
 				DataPoint calculateSpeed = speed.calculateSpeed(utm);
-				System.out.println(calculateSpeed);
+				//Refresh speed view
+				if(calculateSpeed.getSpeed() > 0)
+					speedViewer.refreshInfo(calculateSpeed.getSpeed(), 110.0, Coordinate.NORTH);
+				//Refresh map
 				coordsCalc = initCoords();
 				HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUMTNorting(), true, utm.getUMTEasting(), utm.isWestLongitude());
 				map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
 			}
 		});
         try {
-            semaphore.acquire();
+        	semaphoreSpeed.acquire();
+            semaphoreMap.acquire();
             receiver.start();
         }catch( InterruptedException e ) {
             e.printStackTrace();
         }
 	}
 
-	private void doMap( final Semaphore semaphore){
+	private void doMap( final Semaphore semaphore ){
 		SwingUtilities.invokeLater( new Runnable() {
 			@Override
 			public void run(){
 				map = new MapViewer(semaphore);
+			}
+		});
+	}
+	
+	private void doSpeedViewer( Semaphore semaphore ){
+		SwingUtilities.invokeLater( new Runnable() {
+			@Override
+			public void run(){
+				speedViewer = new SpeedViewer( semaphore );
 			}
 		});
 	}

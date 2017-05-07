@@ -12,7 +12,7 @@ public class SpeedCalculator {
 	}
 	
 	public DataPoint calculateSpeed(UTMConverter utm){
-		currentDataPoint = new DataPoint();
+		currentDataPoint = new DataPoint(0.0, 0.0, 0.0, Coordinate.NORTH, 0.0, System.currentTimeMillis());
 		//First use -> cannot calculate the speed
 		if(previousDataPoint != null){
 			//Setting actual millisecond and UTM coordinates 

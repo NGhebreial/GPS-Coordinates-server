@@ -22,14 +22,22 @@ public class MapViewer extends JFrame {
 
         this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
         ImageIcon img = new ImageIcon( "res/insia.png" );
-
-        this.panel = (JPanel)this.getContentPane();
-        this.panel.setPreferredSize( new Dimension(img.getIconWidth(), img.getIconHeight()) );
-
-        this.image = new JLabel();
-        System.out.println("Im with width: " + img.getIconWidth() + " height: " + img.getIconHeight());
+        
         this.imWidth = img.getIconWidth();
         this.imHeight = img.getIconHeight();
+        
+        this.panel = (JPanel)this.getContentPane();
+        
+        this.panel.setPreferredSize( new Dimension(imWidth, imHeight) );
+
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+
+        this.setLocation((int) ( 0  ),
+                (int) (dimension.getHeight() / 2 - imHeight/ 2));
+        
+        this.image = new JLabel();
+        System.out.println("Im with width: " + imWidth + " height: " + imHeight);
+        
         this.image.setIcon( img );
         this.panel.add( image );
 
