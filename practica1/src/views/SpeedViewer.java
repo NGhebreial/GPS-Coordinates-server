@@ -10,12 +10,12 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import utils.Coordinate;
+import utils.Orientation;
 
 public class SpeedViewer extends JFrame {
 
 	private Double cSpeed;
-	private Coordinate coordinate;
+	private Orientation orientation;
 	private Double rSpeed;
 
 	private JButton red;
@@ -36,7 +36,7 @@ public class SpeedViewer extends JFrame {
 		super("Speed information");
 
 		cSpeed = rSpeed = new Double( 0.0 );
-		coordinate = Coordinate.NORTH;
+		orientation = Orientation.NORTH;
 		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
@@ -59,7 +59,7 @@ public class SpeedViewer extends JFrame {
 		
 		cSpeedInfo.setText("Current speed: "+cSpeed);
 		rSpeedInfo.setText("Recomended speed: "+rSpeed);
-		orientationInfo.setText("Orientation: "+coordinate);
+		orientationInfo.setText("Orientation: "+ orientation );
 
 		this.setLayout(new GridLayout(2, 3));
 		this.add(green);
@@ -74,11 +74,11 @@ public class SpeedViewer extends JFrame {
 		
 		semaphore.release();
 	}
-	public void refreshInfo(Double cSpeed, Double rSpeed, Coordinate coordinate){
+	public void refreshInfo(Double cSpeed, Double rSpeed, Orientation orientation ){
 		updateButtonInfo(cSpeed, rSpeed);
 		cSpeedInfo.setText("Current speed: "+cSpeed);
 		rSpeedInfo.setText("Recomended speed: "+rSpeed);
-		orientationInfo.setText("Orientation: "+coordinate);
+		orientationInfo.setText("Orientation: "+ orientation );
 	}
 	private void updateButtonInfo(Double cSpeed, Double rSpeed){		
 		double minSpeed = rSpeed - (rSpeed * 0.1);

@@ -1,33 +1,33 @@
 package models;
 
-import utils.Coordinate;
+import utils.Orientation;
 
 public class DataPoint {
 	
 	private Double norting;
 	private Double easting;
 	private Double speed;
-	private Coordinate coordinate;
+	private Orientation orientation;
 	private Double bearing;
 	private Long miliseconds;
 	
 	public DataPoint(){		
 	}
 
-	public DataPoint(Double norting, Double easting, Coordinate coordinate){
+	public DataPoint(Double norting, Double easting, Orientation orientation ){
 		this.norting = norting;
 		this.easting = easting;
 		this.speed = 0.0;
-		this.coordinate = coordinate;
+		this.orientation = orientation;
 		this.bearing = 0.0;
 		this.miliseconds = System.currentTimeMillis();
 	}
 
-	public DataPoint(Double norting, Double easting, Double speed, Coordinate coordinate, Double bearing, Long miliseconds){
+	public DataPoint( Double norting, Double easting, Double speed, Orientation orientation, Double bearing, Long miliseconds){
 		this.norting = norting;
 		this.easting = easting;
 		this.speed = speed;
-		this.coordinate = coordinate;
+		this.orientation = orientation;
 		this.bearing = bearing;
 		this.miliseconds = miliseconds;
 	}
@@ -56,12 +56,12 @@ public class DataPoint {
 		this.speed = d;
 	}
 
-	public Coordinate getCoordinate() {
-		return coordinate;
+	public Orientation getOrientation() {
+		return orientation;
 	}
 
-	public void setCoordinate(Coordinate coordinate) {
-		this.coordinate = coordinate;
+	public void setOrientation( Orientation orientation ) {
+		this.orientation = orientation;
 	}
 
 	public Double getBearing() {
@@ -80,10 +80,16 @@ public class DataPoint {
 		this.miliseconds = miliseconds;
 	}
 
+	public double getDistanceTo( DataPoint target ){
+        double diffN = Math.pow( this.norting - target.getNorting(), 2.0 );
+        double diffE = Math.pow( this.easting - target.getEasting(), 2.0 );
+        return Math.sqrt( diffN + diffE );
+    }
+
 	@Override
 	public String toString() {
 		return "DataPoint [norting=" + norting + ", easting=" + easting + ", speed=" + speed + ", coordinate="
-				+ coordinate + ", bearing=" + bearing + ", miliseconds=" + miliseconds + "]";
-	}	
-	
+				+ orientation + ", bearing=" + bearing + ", miliseconds=" + miliseconds + "]";
+	}
+
 }

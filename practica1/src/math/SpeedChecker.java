@@ -1,7 +1,9 @@
 package math;
 
 import models.DataPoint;
-import utils.Coordinate;
+import models.Quadrant;
+import utils.GridGenerator;
+import utils.Orientation;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -22,6 +24,8 @@ public class SpeedChecker {
     private DataPoint[][] sourceData;
     private ArrayList<ArrayList<Quadrant>> map;
 
+    private GridGenerator grid;
+
     // Map data
     private static final int maxNorth = 4471000;
     private static final int minNorth = 4470780;
@@ -34,7 +38,8 @@ public class SpeedChecker {
         this.dataPoints = 222;
         this.map = new ArrayList<ArrayList<Quadrant>>();
         this.data = new DataPoint[dataPoints];
-        this.sourceData = GridGenerator.generate(maxNorth, minNorth, maxWest, minWest, numRows, numCols);
+        this.grid = new GridGenerator(maxNorth, minNorth, maxWest, minWest, numRows, numCols);
+        this.sourceData = grid.generate();
         this.map = this.setMap(this.sourceData);
         this.loadDataFile( this.DATA_FILE, this.data, this.dataPoints );
         this.matchDataWithGrid(this.data);
@@ -64,8 +69,8 @@ public class SpeedChecker {
                 double north = sc.nextDouble();
                 double south = sc.nextDouble();
                 double speed = sc.nextInt();
-                Coordinate coordinate = Coordinate.values()[sc.nextInt()];
-                store[colIdx++] = new DataPoint( north, south, speed, coordinate, 0.0, System.currentTimeMillis() );
+                Orientation orientation = Orientation.values()[sc.nextInt()];
+                store[colIdx++] = new DataPoint( north, south, speed, orientation, 0.0, System.currentTimeMillis() );
             }
             if( colIdx != cols ){
                 throw new RuntimeException( "Bad Dump File specification, expect " + cols + " got " + colIdx);
@@ -132,41 +137,66 @@ public class SpeedChecker {
         return this.map;
     }
 
+    private int distanceMatch( DataPoint target, DataPoint[] matches, ArrayList<DataPoint> inspection, ArrayList<DataPoint> distances ){
+        // Speed match
+        // at least 0.5 meters difference between each data point and the target
+        // at maximum 1.5 meters distance to be considered a valid criteria
+        double cellSize = grid.getCellSize();
+        double minThreshold = cellSize/4.0;
+        double maxThreshold = cellSize/2.0;
+        int firstIndex = 0;
+        for( int i = 0; i < matches.length; i++ ){
+            double currentDistance = target.getDistanceTo( matches[i] );
+            if( currentDistance < maxThreshold ){
+                if( inspection.size() == 0 ){
+                    firstIndex = i;
+                }
+                inspection.add( matches[i] );
+                if( currentDistance < minThreshold ){
+                    if( distances.size() == 0 ){
+                        firstIndex = i;
+                    }
+                    distances.add( matches[i] );
+                }
+            }
+        }
+        return firstIndex;
+    }
+
+    /**
+     * Speed model determination
+     *  1. Minimum distance by coordinates
+     *  2. Next index on matches (is next-to-be point)
+     */
     // -1 not found, 0 all right, 1 higher, 2 much higher
-    public int getTargetSpeed( DataPoint target ){
-        int ret = -1;
+    public double getTargetSpeed( DataPoint target ){
+        double ret = -1.0;
         // Try grabbing the quadrant for this point
         Quadrant contained = this.getQuadrant( target );
         if( contained != null ){
-            // Maximum orientation difference
+            // Maximum orientation difference: 1
+            // TODO => Calibrate with real sensor data and math on SpeedCalculator
             DataPoint[] matches = contained.getTargetsByOrientation( target, 1 );
             if( matches.length > 0){
-                // Conservative way: if in doubt, return a very high value
-                // No car goes faster than 1000kms/h
-                double lowestSpeed = 1000;
-                double currentSpeed = target.getSpeed();
-                for( DataPoint match : matches ){
-                    lowestSpeed = Math.min(lowestSpeed, match.getSpeed());
-                }
-                double tenPercent = lowestSpeed * 0.1;
-                if( currentSpeed < lowestSpeed - tenPercent ){
-                    ret = 0;
-                }else if( lowestSpeed - tenPercent < currentSpeed && currentSpeed < lowestSpeed + tenPercent ){
-                    ret = 1;
+                ArrayList<DataPoint> inspection = new ArrayList<DataPoint>( matches.length );
+                ArrayList<DataPoint> testMatches = new ArrayList<DataPoint>( matches.length );
+                int firstMatch = distanceMatch( target, matches, inspection, testMatches );
+                if( inspection.size() == 1 ){
+                    // End here
+                    ret = inspection.get( 0 ).getSpeed();
+                }else if( testMatches.size() == 1 ){
+                    // End here
+                    ret = testMatches.get( 0 ).getSpeed();
                 }else{
-                    ret = 2;
+                    if( matches.length +1 > firstMatch ){
+                        ret = matches[firstMatch +1].getSpeed();
+                    }else{
+                        ret = matches[firstMatch].getSpeed();
+                    }
                 }
             }
         }
         return ret;
     }
 
-    public static void main( String[] args ){
-        SpeedChecker sp = new SpeedChecker();
-        ArrayList<ArrayList<Quadrant>> themap = sp.getMap();
-        DataPoint target = themap.get(6).get(6).getLeftUpCorner();
-        DataPoint testPoint = new DataPoint( target.getNorting(), target.getEasting(), target.getCoordinate() );
-        System.out.println(testPoint);
-        System.out.println("Check " + sp.getQuadrant( testPoint ));
-    }
 }

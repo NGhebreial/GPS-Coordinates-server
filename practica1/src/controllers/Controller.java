@@ -4,7 +4,7 @@ import gpgga.GpggaBox;
 import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
 import math.SpeedCalculator;
-import utils.Coordinate;
+import utils.Orientation;
 import utils.MessageBox;
 import math.UTMConverter;
 import models.DataPoint;
@@ -66,7 +66,7 @@ public class Controller extends Thread {
 				DataPoint calculateSpeed = speed.calculateSpeed(utm);
 				//Refresh speed view
 				if(calculateSpeed.getSpeed() > 0)
-					speedViewer.refreshInfo(calculateSpeed.getSpeed(), 110.0, Coordinate.NORTH);
+					speedViewer.refreshInfo(calculateSpeed.getSpeed(), 110.0, Orientation.NORTH);
 				//Refresh map
 				coordsCalc = initCoords();
 				HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUMTNorting(), true, utm.getUMTEasting(), utm.isWestLongitude());
@@ -91,7 +91,7 @@ public class Controller extends Thread {
 		});
 	}
 	
-	private void doSpeedViewer( Semaphore semaphore ){
+	private void doSpeedViewer(final Semaphore semaphore ){
 		SwingUtilities.invokeLater( new Runnable() {
 			@Override
 			public void run(){

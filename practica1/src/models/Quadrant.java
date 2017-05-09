@@ -1,6 +1,4 @@
-package math;
-
-import models.DataPoint;
+package models;
 
 import java.util.ArrayList;
 
@@ -68,15 +66,21 @@ public class Quadrant {
         this.targets.add( target );
     }
 
+    public ArrayList<DataPoint> getTargets(){
+        return this.targets;
+    }
+
+    // TODO => Test this method
     public DataPoint[] getTargetsByOrientation( DataPoint query, int maxDiff ){
         ArrayList<DataPoint> ret = new ArrayList<DataPoint>();
         // Get targets based on a maximum difference in orientation
         for(DataPoint target : targets){
-            if( target.getCoordinate().getDiff(query.getCoordinate().getValue()) <= maxDiff ){
+            System.out.println("Get traget by orientation test " + target.toString() + " test " + query.toString());
+            if( target.getOrientation().getDiff(query.getOrientation().getValue()) <= maxDiff ){
                 ret.add( target );
             }
         }
-        return (DataPoint[]) ret.toArray();
+        return targets.size() > 0 ? (DataPoint[]) ret.toArray() : new DataPoint[0];
     }
 
     @Override

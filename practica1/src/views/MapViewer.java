@@ -32,8 +32,7 @@ public class MapViewer extends JFrame {
 
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 
-        this.setLocation((int) ( 0  ),
-                (int) (dimension.getHeight() / 2 - imHeight/ 2));
+        this.setLocation(0, (int) (dimension.getHeight() / 2 - imHeight/ 2) );
         
         this.image = new JLabel();
         System.out.println("Im with width: " + imWidth + " height: " + imHeight);
