@@ -21,7 +21,7 @@ public class MapViewer extends JFrame {
         this.painted = 0;
 
         this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-        ImageIcon img = new ImageIcon( "res/insia.png" );
+        ImageIcon img = new ImageIcon( "practica1/res/insia_speed.png" );
         
         this.imWidth = img.getIconWidth();
         this.imHeight = img.getIconHeight();
@@ -51,7 +51,7 @@ public class MapViewer extends JFrame {
             this.painted = 0;
         }
         this.image.getGraphics().fillOval( x, y, 12, 12 );
-        System.out.println("Painting at " + x + ", " + y); 
+        System.out.println("Painting at " + x + ", " + y);
     }
 
     public int getImWidth(){

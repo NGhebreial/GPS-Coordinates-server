@@ -43,8 +43,8 @@ public class SpeedChecker {
         this.sourceData = grid.generate();
         this.map = this.setMap(this.sourceData);
         this.loadDataFile( this.DATA_FILE, this.data, this.dataPoints );
-        this.matchDataWithGrid(this.data);
         this.setBoundingBox();
+        this.matchDataWithGrid(this.data);
     }
 
     private void setBoundingBox(){
@@ -113,12 +113,6 @@ public class SpeedChecker {
             (leftUp.getEasting() <= target.getEasting() && rigthDown.getEasting() > target.getEasting())
         );
     }
-
-    /*private int[] approximateBound( DataPoint point ){
-        int width = this.grid.getWidth();
-        int height = this.grid.getHeight();
-
-    }*/
 
     private Quadrant getQuadrantByIndex( int[] index ){
         Quadrant ret = null;

@@ -5,10 +5,10 @@ import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
 import math.SpeedCalculator;
 import math.SpeedChecker;
-import utils.Orientation;
-import utils.MessageBox;
 import math.UTMConverter;
 import models.DataPoint;
+import utils.MessageBox;
+import utils.NmeaEmulator;
 import views.MapViewer;
 import views.SpeedViewer;
 
@@ -33,16 +33,35 @@ public class Controller extends Thread {
 	private SpeedViewer speedViewer;
 	private SpeedChecker speedChecker;
 
-	public Controller(String addr, int port){
-		semaphoreMap = new Semaphore( 0 );
-		semaphoreSpeed = new Semaphore( 0 );
-	    doMap(semaphoreMap);
-	    doSpeedViewer(semaphoreSpeed);
-		box = new GpggaBox();
-		receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
-		speed = new SpeedCalculator();
-		isSpeedCheckerReady();
-	}
+	private NmeaEmulator emulator;
+
+	private boolean emulated;
+
+    public Controller(String addr, int port){
+        emulated = false;
+        semaphoreMap = new Semaphore( 0 );
+        semaphoreSpeed = new Semaphore( 0 );
+        doMap(semaphoreMap);
+        doSpeedViewer(semaphoreSpeed);
+        box = new GpggaBox();
+        receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+        speed = new SpeedCalculator();
+        emulator = new NmeaEmulator();
+        isSpeedCheckerReady();
+    }
+
+    public Controller(String addr, int port, boolean debug){
+        emulated = debug;
+        semaphoreMap = new Semaphore( 0 );
+        semaphoreSpeed = new Semaphore( 0 );
+        doMap(semaphoreMap);
+        doSpeedViewer(semaphoreSpeed);
+        box = new GpggaBox();
+        receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+        speed = new SpeedCalculator();
+        emulator = new NmeaEmulator();
+        isSpeedCheckerReady();
+    }
 	
 	public CoordsCalculator initCoords(){
 		UTMConverter utm = new UTMConverter();
@@ -57,28 +76,59 @@ public class Controller extends Thread {
 
 		return new CoordsCalculator(imUpX, imUpY, imDownX, imDownY, map.getImWidth(), map.getHeight());
 	}
-	
-	@Override
-	public void run() {
-		box.setChain(new MessageBox() {
 
-			@Override
-			public void call(Object data) {
-				//Received data in UTM format
-				UTMConverter utm = (UTMConverter) data;
-				refreshSpeedView(utm);
-				//Refresh map
-				coordsCalc = initCoords();
-				HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUMTNorting(), true, utm.getUMTEasting(), utm.isWestLongitude());
-				map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
-			}
-		});
+	public void realRun(){
+        box.setChain(new MessageBox() {
+
+            @Override
+            public void call(Object data) {
+                //Received data in UTM format
+                UTMConverter utm = (UTMConverter) data;
+                refreshSpeedView(utm);
+                //Refresh map
+                coordsCalc = initCoords();
+                HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUMTNorting(), true, utm.getUMTEasting(), utm.isWestLongitude());
+                map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
+            }
+        });
         try {
-        	semaphoreSpeed.acquire();
+            semaphoreSpeed.acquire();
             semaphoreMap.acquire();
             receiver.start();
         }catch( InterruptedException e ) {
             e.printStackTrace();
+        }
+    }
+
+    public void fakeRun(){
+        box.setChain(new MessageBox() {
+
+            @Override
+            public void call(Object data) {
+                //Received data in UTM format
+                UTMConverter utm = (UTMConverter) data;
+                refreshSpeedView(utm);
+                //Refresh map
+                coordsCalc = initCoords();
+                HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUMTNorting(), true, utm.getUMTEasting(), utm.isWestLongitude());
+                map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
+            }
+        });
+        try {
+            semaphoreSpeed.acquire();
+            semaphoreMap.acquire();
+            emulator.start();
+        }catch( InterruptedException e ) {
+            e.printStackTrace();
+        }
+    }
+
+	@Override
+	public void run() {
+        if( !emulated ){
+            realRun();
+        }else{
+            fakeRun();
         }
 	}
 	
@@ -116,12 +166,12 @@ public class Controller extends Thread {
 		SwingUtilities.invokeLater( new Runnable() {
 			@Override
 			public void run(){
-				map = new MapViewer(semaphore);
+				map = new MapViewer( semaphore );
 			}
 		});
 	}
 	
-	private void doSpeedViewer(final Semaphore semaphore ){
+	private void doSpeedViewer( final Semaphore semaphore ){
 		SwingUtilities.invokeLater( new Runnable() {
 			@Override
 			public void run(){
