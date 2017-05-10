@@ -23,6 +23,7 @@ public class SpeedChecker {
     private DataPoint[] data;
     private DataPoint[][] sourceData;
     private ArrayList<ArrayList<Quadrant>> map;
+    private Quadrant boundingBox;
 
     private GridGenerator grid;
 
@@ -31,8 +32,8 @@ public class SpeedChecker {
     private static final int minNorth = 4470780;
     private static final int maxWest = 446400;
     private static final int minWest = 446220;
-    private static final int numRows = 36;
-    private static final int numCols = 44;
+    private static final int numRows = 11;
+    private static final int numCols = 9;
 
     public SpeedChecker(){
         this.dataPoints = 222;
@@ -43,6 +44,17 @@ public class SpeedChecker {
         this.map = this.setMap(this.sourceData);
         this.loadDataFile( this.DATA_FILE, this.data, this.dataPoints );
         this.matchDataWithGrid(this.data);
+        this.setBoundingBox();
+    }
+
+    private void setBoundingBox(){
+        ArrayList<Quadrant> firstRow = this.map.get( 0 );
+        ArrayList<Quadrant> lastRow = this.map.get( this.map.size() -1 );
+        DataPoint leftUp = firstRow.get( 0 ).getLeftUpCorner();
+        DataPoint rightUp = firstRow.get( firstRow.size() -1 ).getRightUpCorner();
+        DataPoint leftDown = lastRow.get( 0 ).getLeftDownCorner();
+        DataPoint rightDown = lastRow.get( lastRow.size() -1 ).getRightDownCorner();
+        this.boundingBox = new Quadrant( leftUp, rightUp, leftDown, rightDown, new int[]{0, firstRow.size() -1} );
     }
 
     private void matchDataWithGrid( DataPoint[] data ){
@@ -102,6 +114,12 @@ public class SpeedChecker {
         );
     }
 
+    /*private int[] approximateBound( DataPoint point ){
+        int width = this.grid.getWidth();
+        int height = this.grid.getHeight();
+
+    }*/
+
     private Quadrant getQuadrantByIndex( int[] index ){
         Quadrant ret = null;
         boolean found = false;
@@ -123,12 +141,15 @@ public class SpeedChecker {
         boolean found = false;
         int i = 0;
         int j = 0;
-        for(; i < this.map.size() && !found; i++ ) {
-            ArrayList<Quadrant> row = this.map.get(i);
-            for(j = 0; j < row.size() && !(found = checkPointInBound(row.get( j ), point)); j++ );
-        }
-        if( found ){
-            ret = this.map.get( i-1 ).get( j );
+        // First against the hole map box
+        if( this.checkPointInBound( this.boundingBox, point ) ){
+            for( ; i < this.map.size() && !found; i++ ) {
+                ArrayList<Quadrant> row = this.map.get( i );
+                for( j = 0; j < row.size() && !( found = checkPointInBound( row.get( j ), point ) ); j++ ) ;
+            }
+            if( found ){
+                ret = this.map.get( i - 1 ).get( j );
+            }
         }
         return ret;
     }
@@ -137,13 +158,12 @@ public class SpeedChecker {
         return this.map;
     }
 
+    // TODO => Check max and min threshold
     private int distanceMatch( DataPoint target, DataPoint[] matches, ArrayList<DataPoint> inspection, ArrayList<DataPoint> distances ){
         // Speed match
-        // at least 0.5 meters difference between each data point and the target
-        // at maximum 1.5 meters distance to be considered a valid criteria
         double cellSize = grid.getCellSize();
-        double minThreshold = cellSize/4.0;
-        double maxThreshold = cellSize/2.0;
+        double minThreshold = 1.0;
+        double maxThreshold = cellSize/4.0;
         int firstIndex = 0;
         for( int i = 0; i < matches.length; i++ ){
             double currentDistance = target.getDistanceTo( matches[i] );
