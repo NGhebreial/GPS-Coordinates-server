@@ -17,7 +17,6 @@ import java.util.Scanner;
 public class SpeedChecker {
 
     private final String DATA_FILE = "practica1/data/speed.txt";
-    private final String MAP_FILE = "practica1/data/map.txt";
 
     private int dataPoints;
     private DataPoint[] data;
@@ -57,6 +56,10 @@ public class SpeedChecker {
         this.boundingBox = new Quadrant( leftUp, rightUp, leftDown, rightDown, new int[]{0, firstRow.size() -1} );
     }
 
+    public Quadrant getBoundingBox(){
+        return this.boundingBox;
+    }
+
     private void matchDataWithGrid( DataPoint[] data ){
         int matched = 0;
         for(DataPoint dataPoint: data){
@@ -73,7 +76,7 @@ public class SpeedChecker {
         }
     }
 
-    private void loadDataFile( String path, DataPoint[] store, int cols ){
+    public void loadDataFile( String path, DataPoint[] store, int cols ){
         try {
             Scanner sc = new Scanner( new BufferedInputStream( new FileInputStream( path ) ) );
             int colIdx = 0;

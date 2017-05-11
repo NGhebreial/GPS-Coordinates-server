@@ -3,7 +3,6 @@ package utils;
 import math.CoordsCalculator;
 import math.SpeedChecker;
 import models.DataPoint;
-import models.Quadrant;
 import views.MapViewer;
 
 import javax.swing.*;
@@ -25,10 +24,14 @@ public class NmeaEmulator extends Thread {
     private MapViewer map;
     private Semaphore mutex;
 
-    private static final int imUpX = 446220;
-    private static final int imUpY = 4471000;
-    private static final int imDownX = 446400;
-    private static final int imDownY = 4470780;
+    private static final int imUpX = 4471000;
+    private static final int imUpY = 446220;
+    private static final int imDownX = 4470780;
+    private static final int imDownY = 446400;
+
+    private static final int sleepTime = 200;
+
+    private MessageBox box;
 
     public NmeaEmulator(){
         this.speedChecker = new SpeedChecker();
@@ -41,17 +44,13 @@ public class NmeaEmulator extends Thread {
     }
 
     public void generateRandomData(){
-        ArrayList<ArrayList<Quadrant>> map = this.speedChecker.getMap();
-        for( ArrayList<Quadrant> row : map ){
-            for( Quadrant quadrant : row ){
-                ArrayList<DataPoint> targets = quadrant.getTargets();
-                if( targets.size() > 0 ){
-                    for( DataPoint point : targets ){
-                        this.points.add( fakePoint( point ) );
-                    }
-                }
-            }
+        int cols = 222;
+        DataPoint[] dataPoints = new DataPoint[cols];
+        this.speedChecker.loadDataFile("practica1/data/speed.txt", dataPoints, cols);
+        for( DataPoint p : dataPoints ){
+            this.points.add( fakePoint( p ) );
         }
+
     }
 
     public Orientation randomOrientation( Orientation current ){
@@ -74,7 +73,7 @@ public class NmeaEmulator extends Thread {
             double incr = ((Math.random() + 1.0) * 1.5);
             coord = lowBound + incr;
         }
-        return coord;
+        return Math.round(coord * 100.0)/100.0;
     }
 
     public double randomSpeed( double current ){
@@ -92,30 +91,30 @@ public class NmeaEmulator extends Thread {
         // Randomize speed, location and orientation
         DataPoint res = new DataPoint();
         res.setBearing( point.getBearing() );
-        System.out.println("Fake " + 1);
         res.setOrientation( randomOrientation(point.getOrientation()) );
-        System.out.println("Fake " + 2);
         res.setSpeed( randomSpeed(point.getSpeed()) );
-        System.out.println("Fake " + 3);
         res.setNorting( randomCoordinate( point.getNorting(), northThreshold ) );
-        System.out.println("Fake " + 4);
         res.setEasting( randomCoordinate( point.getEasting(), eastThreshold ) );
-        System.out.println("Fake " + 5);
         return res;
     }
 
     @Override
     public void run(){
-
+        System.out.println("Emulator run");
+        int i = 0;
+        while( i < this.points.size() ){
+            try {
+                Thread.sleep( sleepTime );
+                DataPoint p = this.points.get(i++);
+                box.call( p );
+            }catch( InterruptedException e ) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void doMap( final Semaphore semaphore ){
-        SwingUtilities.invokeLater( new Runnable() {
-            @Override
-            public void run(){
-                map = new MapViewer( semaphore );
-            }
-        });
+    public void setBox( MessageBox box ){
+        this.box = box;
     }
 
     public Semaphore getMutex(){
@@ -134,6 +133,15 @@ public class NmeaEmulator extends Thread {
         return this.map;
     }
 
+    public void doMap( final Semaphore semaphore ){
+        SwingUtilities.invokeLater( new Runnable() {
+            @Override
+            public void run(){
+                map = new MapViewer( semaphore );
+            }
+        });
+    }
+
     public static void main( String[] args ){
 
         NmeaEmulator emulator = new NmeaEmulator();
@@ -141,16 +149,19 @@ public class NmeaEmulator extends Thread {
         emulator.doMap( semaphore );
         try {
             semaphore.acquire();
-            Thread.sleep( 1000 );
+            Thread.sleep( 5000 );
             MapViewer map = emulator.getMap();
             CoordsCalculator coordsCalculator = emulator.initCoords();
             ArrayList<DataPoint> points = emulator.getPoints();
             for( DataPoint point : points ){
-                HashMap<String, Integer> toPaint = coordsCalculator.translatetoInt( point.getNorting(), true, point.getEasting(), false );
+                HashMap<String, Integer> toPaint = coordsCalculator.translatetoInt( point.getNorting(), true, point.getEasting(), true );
                 System.out.println("Point at north: " + point.getNorting() + " east: " + point.getEasting() + " x " + toPaint.get( "x" ) + " y " + toPaint.get( "y" ));
                 map.drawPointer( toPaint.get( "x" ), toPaint.get( "y" ) );
-                break;
             }
+            HashMap<String, Integer> toPaint = coordsCalculator.translatetoInt(imUpX, true, imUpY, true );
+            map.drawPointer( toPaint.get( "x" ), toPaint.get( "y" ) );
+            toPaint = coordsCalculator.translatetoInt(imDownX, true, imDownY, true );
+            map.drawPointer( toPaint.get( "x" ), toPaint.get( "y" ) );
         }catch( InterruptedException e ) {
             e.printStackTrace();
         }

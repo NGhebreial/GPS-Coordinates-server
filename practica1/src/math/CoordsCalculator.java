@@ -32,11 +32,11 @@ public class CoordsCalculator {
 		UTMConverter utm = new UTMConverter();
 		// Default UPM
 		utm.setup(40.392132,0.0, 3.638561, 0.0, true );
-		this.imUpLat = utm.getUMTNorting();
-		this.imLeftLon = utm.getUMTEasting();
+		this.imUpLat = utm.getUTMNorting();
+		this.imLeftLon = utm.getUTMEasting();
 		utm.setup(40.386382, 0.0, 3.620250, 0.0, true);
-		this.imDownLat = utm.getUMTNorting();
-		this.imRightLon = utm.getUMTEasting();
+		this.imDownLat = utm.getUTMNorting();
+		this.imRightLon = utm.getUTMEasting();
 		this.imWidth = 1362;
 		this.imHeight = 644;
 	}

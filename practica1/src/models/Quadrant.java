@@ -75,12 +75,21 @@ public class Quadrant {
         ArrayList<DataPoint> ret = new ArrayList<DataPoint>();
         // Get targets based on a maximum difference in orientation
         for(DataPoint target : targets){
-            System.out.println("Get traget by orientation test " + target.toString() + " test " + query.toString());
+            // System.out.println("Get traget by orientation test " + target.toString() + " test " + query.toString());
             if( target.getOrientation().getDiff(query.getOrientation().getValue()) <= maxDiff ){
                 ret.add( target );
             }
         }
-        return targets.size() > 0 ? (DataPoint[]) ret.toArray() : new DataPoint[0];
+        System.out.println("Get targets " + targets.size());
+        return this.listToArray(targets);
+    }
+
+    private DataPoint[] listToArray(ArrayList<DataPoint> data){
+        DataPoint[] ret = new DataPoint[data.size()];
+        for( int i = 0; i < data.size(); i++ ){
+            ret[i] = data.get( i );
+        }
+        return ret;
     }
 
     @Override

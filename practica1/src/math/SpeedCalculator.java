@@ -11,14 +11,14 @@ public class SpeedCalculator {
 	public SpeedCalculator(){
 	}
 	
-	public DataPoint calculateSpeed(UTMConverter utm){
+	public DataPoint calculateSpeed(DataPoint utm){
 		currentDataPoint = new DataPoint(0.0, 0.0, 0.0, Orientation.NORTH, 0.0, System.currentTimeMillis());
 		//First use -> cannot calculate the speed
 		if(previousDataPoint != null){
 			//Setting actual millisecond and UTM coordinates 
 			currentDataPoint.setMiliseconds(System.currentTimeMillis());
-			currentDataPoint.setNorting(utm.getUMTNorting());
-			currentDataPoint.setEasting(utm.getUMTEasting());
+			currentDataPoint.setNorting(utm.getNorting());
+			currentDataPoint.setEasting(utm.getEasting());
 			//Using previous data to calculate km and milliseconds
 			Double distaceKm = Math.round( traversedKilometers(previousDataPoint.getNorting(), currentDataPoint.getNorting(),
 					previousDataPoint.getEasting(), currentDataPoint.getEasting()) * 100000.0 )/100000.0 ;
@@ -30,11 +30,14 @@ public class SpeedCalculator {
 			currentDataPoint.setSpeed( speed < 1? 0.0: speed );
 			Double bearing = bearingDistance(previousDataPoint.getNorting(), currentDataPoint.getNorting(),
 					previousDataPoint.getEasting(), currentDataPoint.getEasting());
+			bearing = bearing < 0 ? (360.0 + bearing) : bearing;
 			//Setting bearing
 			currentDataPoint.setBearing(bearing);
-			//Calculate the direction using bearing
-			Integer direction = (int) (Math.round(bearing / 45) < 0? Math.round(bearing / 45) + 8: Math.round(bearing / 45));
-			currentDataPoint.setOrientation( Orientation.values()[direction]);
+            //Calculate the direction using bearing
+			Integer direction = (int) ((Math.round(bearing / 45.0)));// < 0? Math.round(bearing / 45.0) + 8: Math.round(bearing / 45.0));
+            System.out.println("Direction bearing " + bearing + " int " + direction);
+            System.out.println(" or " + Orientation.values()[direction]);
+            currentDataPoint.setOrientation( Orientation.values()[direction]);
 			//new Data point is setting to previous data point
 			previousDataPoint = new DataPoint(currentDataPoint.getNorting(), currentDataPoint.getEasting(), currentDataPoint.getSpeed(), currentDataPoint.getOrientation(), currentDataPoint.getBearing(), currentDataPoint.getMiliseconds());
 		}
@@ -47,10 +50,10 @@ public class SpeedCalculator {
 	private Double traversedKilometers( Double previousN, Double currentN, Double previousE, Double currentE){
 		Double differenceN = Math.pow(previousN - currentN, 2.0);
 		Double differenceE = Math.pow(previousE - currentE, 2.0);
-		return Math.sqrt( differenceN + differenceE ) / 1000;
+		return Math.sqrt( differenceN + differenceE ) / 1000.0;
 	}
 	/**Calculate the bearing between previous and current UTM coordinates*/
 	private Double bearingDistance(Double previousN, Double currentN, Double previousE, Double currentE){
-		return Math.toDegrees(Math.atan2( (previousN - currentN), (previousE - currentE) ) );
+		return Math.toDegrees(Math.atan2((currentN - previousN), (currentE - previousE) ) );
 	}
 }
