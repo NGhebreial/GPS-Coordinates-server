@@ -7,9 +7,7 @@ import math.SpeedCalculator;
 import math.SpeedChecker;
 import math.UTMConverter;
 import models.DataPoint;
-import models.Quadrant;
 import utils.MessageBox;
-import utils.NmeaEmulator;
 import views.MapViewer;
 import views.SpeedViewer;
 
@@ -23,7 +21,6 @@ public class Controller extends Thread {
 	private GpggaReceiver<GpggaBox> receiver;
 
 	private GpggaBox box;
-	private MessageBox emulatorBox;
 
 	private CoordsCalculator coordsCalc;
 
@@ -35,12 +32,7 @@ public class Controller extends Thread {
 	private SpeedViewer speedViewer;
 	private SpeedChecker speedChecker;
 
-	private NmeaEmulator emulator;
-
-	private boolean emulated;
-
     public Controller(String addr, int port){
-        emulated = false;
         semaphoreMap = new Semaphore( 0 );
         semaphoreSpeed = new Semaphore( 0 );
         doMap(semaphoreMap);
@@ -48,24 +40,10 @@ public class Controller extends Thread {
         box = new GpggaBox();
         receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
         speed = new SpeedCalculator();
-        emulator = new NmeaEmulator();
         isSpeedCheckerReady();
     }
 
-    public Controller(String addr, int port, boolean debug){
-        emulated = debug;
-        semaphoreMap = new Semaphore( 0 );
-        semaphoreSpeed = new Semaphore( 0 );
-        doMap(semaphoreMap);
-        doSpeedViewer(semaphoreSpeed);
-        // box = new GpggaBox();
-        // receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
-        speed = new SpeedCalculator();
-        emulator = new NmeaEmulator();
-        isSpeedCheckerReady();
-    }
-	
-	public CoordsCalculator initCoords(){
+    public CoordsCalculator initCoords(){
 		UTMConverter utm = new UTMConverter();
 		utm.setup(40.387835, 0.0, 3.633741, 0.0, true);
 		//utm.setup(40.392132, 0.0, 3.638561, 0.0, true);
@@ -79,14 +57,8 @@ public class Controller extends Thread {
 		return new CoordsCalculator(imUpX, imUpY, imDownX, imDownY, map.getImWidth(), map.getHeight());
 	}
 
-    public CoordsCalculator initInsiaMapCoords(){
-        Quadrant bound = speedChecker.getBoundingBox();
-        DataPoint leftUp = bound.getLeftUpCorner();
-        DataPoint rightDown = bound.getRightDownCorner();
-        return new CoordsCalculator(leftUp.getNorting(), leftUp.getEasting(), rightDown.getNorting(), rightDown.getEasting(), map.getImWidth(), map.getHeight());
-    }
-
-	public void realRun(){
+	@Override
+	public void run() {
         box.setChain(new MessageBox() {
 
             @Override
@@ -109,38 +81,6 @@ public class Controller extends Thread {
             receiver.start();
         }catch( InterruptedException e ) {
             e.printStackTrace();
-        }
-    }
-
-    public void fakeRun(){
-        emulatorBox = new MessageBox() {
-            @Override
-            public void call( Object data ){
-                DataPoint utm = (DataPoint) data;
-                refreshSpeedView(utm);
-                //Refresh map
-                coordsCalc = initInsiaMapCoords();
-                HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getNorting(), true, utm.getEasting(), true );
-                map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
-            }
-        };
-        emulator.setBox(emulatorBox);
-        try {
-            semaphoreSpeed.acquire();
-            semaphoreMap.acquire();
-            Thread.sleep( 5000 );
-            emulator.start();
-        }catch( InterruptedException e ) {
-            e.printStackTrace();
-        }
-    }
-
-	@Override
-	public void run() {
-        if( !emulated ){
-            realRun();
-        }else{
-            fakeRun();
         }
 	}
 	
