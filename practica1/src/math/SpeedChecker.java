@@ -9,6 +9,7 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 /**
@@ -78,7 +79,7 @@ public class SpeedChecker {
 
     public void loadDataFile( String path, DataPoint[] store, int cols ){
         try {
-            Scanner sc = new Scanner( new BufferedInputStream( new FileInputStream( path ) ) );
+            Scanner sc = new Scanner( new BufferedInputStream( new FileInputStream( path ) ) ).useLocale(Locale.US);
             int colIdx = 0;
             while( colIdx < cols && sc.hasNextLine() ){
                 double north = sc.nextDouble();
@@ -156,25 +157,15 @@ public class SpeedChecker {
     }
 
     // TODO => Check max and min threshold
-    private int distanceMatch( DataPoint target, DataPoint[] matches, ArrayList<DataPoint> inspection, ArrayList<DataPoint> distances ){
+    private int distanceMatch( DataPoint target, DataPoint[] matches ){
         // Speed match
-        double cellSize = grid.getCellSize();
-        double minThreshold = 1.0;
-        double maxThreshold = cellSize/4.0;
         int firstIndex = 0;
+        double minDistance = Double.MAX_VALUE;
         for( int i = 0; i < matches.length; i++ ){
             double currentDistance = target.getDistanceTo( matches[i] );
-            if( currentDistance < maxThreshold ){
-                if( inspection.size() == 0 ){
-                    firstIndex = i;
-                }
-                inspection.add( matches[i] );
-                if( currentDistance < minThreshold ){
-                    if( distances.size() == 0 ){
-                        firstIndex = i;
-                    }
-                    distances.add( matches[i] );
-                }
+            if( currentDistance < minDistance ){
+                firstIndex = i;
+                minDistance = currentDistance;
             }
         }
         return firstIndex;
@@ -195,21 +186,9 @@ public class SpeedChecker {
             // TODO => Calibrate with real sensor data and math on SpeedCalculator
             DataPoint[] matches = contained.getTargetsByOrientation( target, 1 );
             if( matches.length > 0){
-                ArrayList<DataPoint> inspection = new ArrayList<DataPoint>( matches.length );
-                ArrayList<DataPoint> testMatches = new ArrayList<DataPoint>( matches.length );
-                int firstMatch = distanceMatch( target, matches, inspection, testMatches );
-                if( inspection.size() == 1 ){
-                    // End here
-                    ret = inspection.get( 0 ).getSpeed();
-                }else if( testMatches.size() == 1 ){
-                    // End here
-                    ret = testMatches.get( 0 ).getSpeed();
-                }else{
-                    if( matches.length +1 > firstMatch ){
-                        ret = matches[firstMatch +1].getSpeed();
-                    }else{
-                        ret = matches[firstMatch].getSpeed();
-                    }
+                int firstMatch = distanceMatch( target, matches );
+                if( firstMatch < matches.length ){
+                	ret = matches[firstMatch].getSpeed();
                 }
             }
         }
