@@ -109,49 +109,4 @@ public class SpeedViewer extends JFrame {
 		this.yellow.setText("");
 		this.green.setText("");
 	}
-//	public static void main( String[] args ){
-//		SpeedViewer view = new SpeedViewer();
-//		//Over recommended
-//		view.refreshInfo(100.0, 80.0, Coordinate.NORTH);
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		//Under
-//		view.refreshInfo(100.0, 120.0, Coordinate.NORTH);
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		//Just
-//		view.refreshInfo(100.0, 110.0, Coordinate.EAST);
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		view.refreshInfo(120.0, 100.0, Coordinate.NORTHEAST);
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		//Under
-//		view.refreshInfo(80.0, 100.0, Coordinate.SOUTH);
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		//Just
-//		view.refreshInfo(100.0, 110.0, Coordinate.NORTH);
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//	}
 }

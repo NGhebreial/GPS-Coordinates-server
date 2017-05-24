@@ -1,12 +1,14 @@
 package controllers;
 
 import gpgga.GpggaBox;
+import gpgga.GpggaMessage;
 import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
 import math.SpeedCalculator;
 import math.SpeedChecker;
 import math.UTMConverter;
 import models.DataPoint;
+import utils.CoordsServer;
 import utils.MessageBox;
 import views.MapViewer;
 import views.SpeedViewer;

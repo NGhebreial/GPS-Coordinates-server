@@ -1,5 +1,6 @@
 package utils;
 
+import gpgga.GpggaMessage;
 import org.java_websocket.WebSocket;
 
 import java.net.InetSocketAddress;

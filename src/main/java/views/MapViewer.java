@@ -21,7 +21,7 @@ public class MapViewer extends JFrame {
         this.painted = 0;
 
         this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-        ImageIcon img = new ImageIcon( "practica1/res/insia_speed.png" );
+        ImageIcon img = new ImageIcon( "res/insia_speed.png" );
         
         this.imWidth = img.getIconWidth();
         this.imHeight = img.getIconHeight();
