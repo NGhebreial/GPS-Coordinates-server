@@ -1,6 +1,7 @@
 package controllers;
 
 import gpgga.GpggaBox;
+import gpgga.GpggaEmulator;
 import gpgga.GpggaMessage;
 import gpgga.GpggaReceiver;
 import math.CoordsCalculator;
@@ -8,7 +9,7 @@ import math.SpeedCalculator;
 import math.SpeedChecker;
 import math.UTMConverter;
 import models.DataPoint;
-import utils.CoordsServer;
+import server.CoordsServer;
 import utils.MessageBox;
 import views.MapViewer;
 import views.SpeedViewer;
@@ -19,32 +20,34 @@ import java.util.concurrent.Semaphore;
 
 public class Controller extends Thread {
 
-	private MapViewer map;
 	private GpggaReceiver<GpggaBox> receiver;
-	private CoordsServer server;
-
 	private GpggaBox box;
+	private GpggaEmulator emulator;
 
+	private SpeedCalculator speed;
+	private SpeedChecker speedChecker;
+	private CoordsServer server;
 	private CoordsCalculator coordsCalc;
 
+	private MapViewer map;
+	private SpeedViewer speedViewer;
 	private Semaphore semaphoreMap;
 	private Semaphore semaphoreSpeed;
-	
-	private SpeedCalculator speed;
-	
-	private SpeedViewer speedViewer;
-	private SpeedChecker speedChecker;
 
-  public Controller(String addr, int port, int socketPort){
+	private boolean debug;
+
+  public Controller(String addr, int port, int socketPort, boolean dev){
       semaphoreMap = new Semaphore( 0 );
       semaphoreSpeed = new Semaphore( 0 );
+      debug = dev;
       doMap(semaphoreMap);
       doSpeedViewer(semaphoreSpeed);
       box = new GpggaBox();
       receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
       speed = new SpeedCalculator();
       server = new CoordsServer( socketPort );
-      isSpeedCheckerReady();
+	  emulator = new GpggaEmulator( true, true );
+	  isSpeedCheckerReady();
   }
 
   public CoordsCalculator initCoords(){
@@ -61,45 +64,62 @@ public class Controller extends Thread {
 		return new CoordsCalculator(imUpX, imUpY, imDownX, imDownY, map.getImWidth(), map.getHeight());
 	}
 
+	public void setupBox(){
+		box.setChain(new MessageBox() {
+
+			@Override
+			public void call(Object data) {
+				//Received data in UTM format
+				UTMConverter utm = (UTMConverter) data;
+				DataPoint point = new DataPoint();
+				point.setNorting( utm.getUTMNorting() );
+				point.setEasting( utm.getUTMEasting() );
+				refreshSpeedView(point);
+				//Refresh map
+				coordsCalc = initCoords();
+				HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUTMNorting(), true, utm.getUTMEasting(), utm.isWestLongitude());
+				map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
+			}
+		});
+		box.setRawChain( new MessageBox() {
+			@Override
+			public void call( Object data ){
+				server.apendToBuffer( (GpggaMessage) data );
+			}
+		});
+		emulator.setBox( new MessageBox() {
+			@Override
+			public void call( Object data ){
+				box.call( ((GpggaMessage) data).getRawMsg() );
+			}
+		});
+	}
+
 	@Override
 	public void run() {
-      box.setChain(new MessageBox() {
-
-          @Override
-          public void call(Object data) {
-              //Received data in UTM format
-              UTMConverter utm = (UTMConverter) data;
-              DataPoint point = new DataPoint();
-              point.setNorting( utm.getUTMNorting() );
-              point.setEasting( utm.getUTMEasting() );
-              refreshSpeedView(point);
-              //Refresh map
-              coordsCalc = initCoords();
-              HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUTMNorting(), true, utm.getUTMEasting(), utm.isWestLongitude());
-              map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
-          }
-      });
-      box.setRawChain( new MessageBox() {
-          @Override
-          public void call( Object data ){
-              server.apendToBuffer( (GpggaMessage) data );
-          }
-      });
-      try {
-          semaphoreSpeed.acquire();
-          semaphoreMap.acquire();
-          receiver.start();
-					server.start();
-      }catch( InterruptedException e ) {
-          e.printStackTrace();
-      }
+		if( !debug ){
+			receiver.connect();
+		}
+		setupBox();
+		try {
+			semaphoreSpeed.acquire();
+			semaphoreMap.acquire();
+			server.start();
+			if( debug ){
+				emulator.start();
+			}else{
+				receiver.start();
+			}
+		}catch( InterruptedException e ) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void refreshSpeedView(DataPoint utm){
 		if( isSpeedCheckerReady() ){
 			DataPoint calculateSpeed = speed.calculateSpeed(utm);
 			//Refresh speed view
-			System.out.println("calculateSpeed.getSpeed() "+calculateSpeed.getSpeed());
+			// System.out.println("calculateSpeed.getSpeed() "+calculateSpeed.getSpeed());
 			if( calculateSpeed.getSpeed() > 0.0 ){
 				double recomendedSpeed = speedChecker.getTargetSpeed(calculateSpeed);
 				if ( recomendedSpeed != -1 ){

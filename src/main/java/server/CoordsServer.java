@@ -1,4 +1,4 @@
-package utils;
+package server;
 
 import gpgga.GpggaMessage;
 import org.java_websocket.WebSocket;
@@ -20,7 +20,6 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
     private AtomicBoolean serving;
     private int port;
     private LinkedBlockingQueue<GpggaMessage> buffer;
-    private boolean debug = false;
 
     public CoordsServer(int port){
         this.port = port;
@@ -43,55 +42,23 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
     }
 
     private String prepareMessage(GpggaMessage msg){
-        Double latMin = (double)Math.round( msg.getLatitudeMinutes() );
-        Double latSec = msg.getLatitudeMinutes() - latMin;
-        Double lonMin = (double)Math.round( msg.getLongitudeMinutes() );
-        Double lonSec = msg.getLongitudeMinutes() - lonMin;
-
-        Double lat = (msg.getLatitude() + (latMin / 60.0) + (latSec / 3600.0));
+        Double lat = (msg.getLatitude() + (msg.getLatitudeMinutes() / 60.0));
         lat = (msg.getLatitudeOrientation() == GpggaMessage.Orientation.SOUTH ? -1 : 1) * lat;
 
-        Double lon = (msg.getLongitude() + (lonMin / 60.0) + (lonSec / 3600.0));
+        Double lon = (msg.getLongitude() + (msg.getLongitudeMinutes() / 60.0));
         lon = (msg.getLongitudeOrientation() == GpggaMessage.Orientation.WEST ? -1 : 1) * lon;
 
-        if( debug ){
-            System.out.println("Prepare" +
-                    "\noriginal: lat " + msg.getLatitude() + " latmin " + msg.getLatitudeMinutes() + " lon " + msg.getLongitude() + " lonmin " + msg.getLongitudeMinutes() +
-                    "\nparsed: latMin " + latMin + " latSec " + latSec + " lonMin " + lonMin + " lonSec " + lonSec +
-                    "\nsending: " + lat + " lon " + lon
-            );
-        }
         // Get Center and bounds
-        return "{ \"point\" : { " +
-                    "\"latitude\":" + lat + "," +
-                    "\"longitude\":" + lon +
-                "}}";
-    }
-
-    private void sendBuffer(){
-        if( !this.buffer.isEmpty() && !this.pool.isEmpty() ){
-            for( GpggaMessage msg : this.buffer ){
-                System.out.println("Sending message");
-                String toSend = prepareMessage( msg );
-                for( WebSocket conn : this.pool ) {
-                    conn.send( toSend );
-                }
-            }
-            cleanBuffer();
-        }else{
-            System.out.println("Empty buffer");
-        }
+        return "{ \"point\" : { \"latitude\":" + lat + "," + "\"longitude\":" + lon + "}}";
     }
 
     private void sendBuffer( GpggaMessage msg ){
         if( !this.pool.isEmpty() ){
-            System.out.println("Sending message");
+            // System.out.println("Sending message");
             String toSend = prepareMessage( msg );
             for( WebSocket conn : this.pool ) {
                 conn.send( toSend );
             }
-        }else{
-            System.out.println("Empty buffer");
         }
     }
 
@@ -106,13 +73,6 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
         startListening();
         this.serving.set( true );
         System.out.println("Server done, awaiting connections");
-        while( this.serving.get() ){
-            if( this.pool.size() > 0 && !this.buffer.isEmpty() ){
-                // sendBuffer();
-            // }else{
-            //     cleanBuffer();
-            }
-        }
     }
 
     @Override
@@ -128,7 +88,7 @@ public class CoordsServer extends Thread implements SocketConnector.OnConnection
 
     public void apendToBuffer(GpggaMessage msg){
         if( msg.isValid() && msg.isFixedData() ){
-            System.out.println( "Add to buffer" );
+            // System.out.println( "Add to buffer" );
             this.buffer.add( msg );
             this.sendBuffer( msg );
         }

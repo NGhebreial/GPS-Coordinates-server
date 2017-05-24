@@ -13,7 +13,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Created by Guillermo Echegoyen Blanco on 2016.
  */
-public class NmeaEmulator extends Thread {
+public class DataPointsEmulator extends Thread {
 
     private SpeedChecker speedChecker;
     private ArrayList<DataPoint> points;
@@ -29,11 +29,11 @@ public class NmeaEmulator extends Thread {
     private static final int imDownX = 4470780;
     private static final int imDownY = 446400;
 
-    private static final int sleepTime = 200;
+    private static final int sleepTime = 250;
 
     private MessageBox box;
 
-    public NmeaEmulator(){
+    public DataPointsEmulator(){
         this.speedChecker = new SpeedChecker();
         this.points = new ArrayList<DataPoint>();
         this.northThreshold = 1.5;
@@ -46,7 +46,7 @@ public class NmeaEmulator extends Thread {
     public void generateRandomData(){
         int cols = 222;
         DataPoint[] dataPoints = new DataPoint[cols];
-        this.speedChecker.loadDataFile("practica1/data/speed.txt", dataPoints, cols);
+        this.speedChecker.loadDataFile("data/speed.txt", dataPoints, cols);
         for( DataPoint p : dataPoints ){
             this.points.add( fakePoint( p ) );
         }
@@ -144,7 +144,7 @@ public class NmeaEmulator extends Thread {
 
     public static void main( String[] args ){
 
-        NmeaEmulator emulator = new NmeaEmulator();
+        DataPointsEmulator emulator = new DataPointsEmulator();
         Semaphore semaphore = emulator.getMutex();
         emulator.doMap( semaphore );
         try {

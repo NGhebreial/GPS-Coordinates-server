@@ -11,6 +11,8 @@ public class GpggaReceiver <T extends MessageBox> extends Thread {
 
     private Socket connection;
     private T box;
+    private String addr;
+    private int port;
 
     public GpggaReceiver(T box){
         this("localhost", 9090, box);
@@ -21,9 +23,14 @@ public class GpggaReceiver <T extends MessageBox> extends Thread {
     }
 
     public GpggaReceiver(String addr, int port, T box){
+        this.addr = addr;
+        this.port = port;
+        this.box = box;
+    }
+
+    public void connect(){
         try {
             this.connection = new Socket(addr, port);
-            this.box = box;
         }catch( IOException e ) {
             e.printStackTrace();
         }

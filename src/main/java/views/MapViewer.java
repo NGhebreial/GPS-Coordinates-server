@@ -51,7 +51,7 @@ public class MapViewer extends JFrame {
             this.painted = 0;
         }
         this.image.getGraphics().fillOval( x, y, 12, 12 );
-        System.out.println("Painting at " + x + ", " + y);
+        // System.out.println("Painting at " + x + ", " + y);
     }
 
     public int getImWidth(){

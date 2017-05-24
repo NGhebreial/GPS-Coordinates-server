@@ -80,7 +80,7 @@ public class Quadrant {
                 ret.add( target );
             }
         }
-        System.out.println("Get targets " + targets.size());
+        // System.out.println("Get targets " + targets.size());
         return this.listToArray(targets);
     }
 

@@ -17,7 +17,7 @@ import java.util.Scanner;
  */
 public class SpeedChecker {
 
-    private final String DATA_FILE = "practica1/data/speed.txt";
+    private final String DATA_FILE = "data/speed.txt";
 
     private int dataPoints;
     private DataPoint[] data;

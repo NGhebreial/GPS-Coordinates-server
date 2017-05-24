@@ -3,7 +3,9 @@
 let map = null
 let viewReady = null
 let center = null
-let zoom = null
+let zoom = 18
+let socket = null
+let recenter = true
 
 function loadMapScenario(){
 	console.log('API Ready')
@@ -15,8 +17,10 @@ function loadMapScenario(){
 	viewReady = true
 }
 
-function loadMap( center, zoom ){
-	zoom || (zoom = 15)
+function loadMap( center, _zoom ){
+	if( _zoom ){
+	    zoom = _zoom
+	}
 	if( center ){
 		map = new Microsoft.Maps.Map(document.getElementById('map'), {
 			credentials: 'Am808_tBNMI958nFN95FX2oBKxPNOahsq7vyuUA-ZbPuyiNTUr7L07irajvZl0rh',
@@ -66,19 +70,15 @@ function centerMap( point ) {
 }
 
 function getInnerBound( bound ) {
-	let ret = null
 	console.log('Pixel bound', map.tryLocationToPixel(bound))
 	const leftPixels = map.tryLocationToPixel(bound.getNorthwest())
 	const rightPixels = map.tryLocationToPixel(bound.getSoutheast())
 	const widthPercent = map.getWidth() * 0.1
 	const heightPercent = map.getHeight() * 0.2
-	const rect = {
+	return {
 		leftUp: map.tryPixelToLocation(new Microsoft.Maps.Point(leftPixels.x + widthPercent, leftPixels.y + heightPercent)),
-		// rightUp: map.tryPixelToLocation(new Microsoft.Maps.Point(rightPixels.x - widthPercent, leftPixels.y + heightPercent)),
-		// leftDown: map.tryPixelToLocation(new Microsoft.Maps.Point(leftPixels.x + widthPercent, rightPixels.y - heightPercent)),
 		rightDown: map.tryPixelToLocation(new Microsoft.Maps.Point(rightPixels.x - widthPercent, rightPixels.y - heightPercent))
 	}
-	return rect
 }
 
 function checkPointInBound( point ){
@@ -108,11 +108,18 @@ function drawPoint( point ) {
 	console.log('Draw Point', point)
 	const target = pointAsLocation( point )
 	const pp = new Microsoft.Maps.Pushpin(target)
-	if( !checkPointInBound(point) ){
+	if( recenter && !checkPointInBound(point) ){
 		centerMap( point )
 	}
 	map.entities.push(pp)
 	return pp
+}
+
+function drawRecenterBox(){
+	if( map !== null ){
+		const bound = getInnerBound(map.getBounds())
+		drawInnerBound(bound.leftUp, bound.rightDown)
+	}
 }
 
 function init(){
@@ -123,7 +130,7 @@ function init(){
 
 function start(){
 	console.log('WebSocket started')	
-	const socket = new WebSocket('ws://localhost:8978')
+	socket = new WebSocket('ws://localhost:8080')
 
 	socket.onmessage = ( message ) => {
 		const data = JSON.parse(message.data)

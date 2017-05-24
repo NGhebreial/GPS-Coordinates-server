@@ -38,8 +38,8 @@ public class GpggaBox extends MessageBox {
 				System.out.println("No fixed data!!");
 			}else{
 				if( rawChain != null ){
-						rawChain.call( message );
-        }
+					rawChain.call( message );
+                }
 
 				UTMConverter utm = new UTMConverter();
 				utm.setup(  message.getLatitude(),
@@ -47,7 +47,7 @@ public class GpggaBox extends MessageBox {
 						message.getLongitude(),
 						message.getLongitudeMinutes(),
 						message.getLongitudeOrientation() == GpggaMessage.Orientation.WEST);
-				System.out.println("Calculated: Norting -> " + utm.getUTMNorting() + " Easting -> " + utm.getUTMEasting());
+				// System.out.println("Calculated: Norting -> " + utm.getUTMNorting() + " Easting -> " + utm.getUTMEasting());
 				if( chain != null ){
 					chain.call(utm);
 				}                

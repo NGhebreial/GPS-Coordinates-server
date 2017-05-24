@@ -1,24 +1,41 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-	<title>Map</title>
-	<meta charset="utf-8">
-  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
-</head>
-<body>
-	<div id="printoutPanel"></div>
-	<div id="map"></div>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0"></script>
+
 	<script type="text/javascript">
-		let map = null
-		function loadMapScenario() {
-			map = new Microsoft.Maps.Map(document.getElementById('map'), {
-			    credentials: 'Am808_tBNMI958nFN95FX2oBKxPNOahsq7vyuUA-ZbPuyiNTUr7L07irajvZl0rh',
-			    center: new Microsoft.Maps.Location(51.50632, -0.12714),
-			    mapTypeId: Microsoft.Maps.MapTypeId.aerial,
-			    zoom: 15
-			})
-		}
-	</script>
-	<script type="text/javascript" src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
+
+      var map = null;
+
+      function GetMap()
+      {
+
+         map = new Microsoft.Maps.Map(document.getElementById("mapDiv"), {credentials: 'Am808_tBNMI958nFN95FX2oBKxPNOahsq7vyuUA-ZbPuyiNTUr7L07irajvZl0rh'});
+
+      }
+
+      function SetLocation()
+      {
+         // Parse the input string
+         var latLongArray = (document.getElementById("txtlatlong").value).split(",");
+
+         // Retrieve the latitude and longitude values- normalize the longitude value
+         var latVal = parseInt(latLongArray[0]);
+         var longVal = Microsoft.Maps.Location.normalizeLongitude(parseInt(latLongArray[1]));
+
+         // Set the map center
+         map.setView({center:new Microsoft.Maps.Location(latVal, longVal)});
+
+      }
+      </script>
+</head>
+<body onload="GetMap();">
+    <div id='mapDiv' style="position:relative; width:600px; height:600px;"></div>
+    Latitude, Longitude:
+        <input id="txtlatlong" type="text" value="40, -120"/>
+        <input type="button" value="Set center location" onclick="SetLocation();"/>
 </body>
 </html>
