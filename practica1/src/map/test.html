@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Map</title>
+	<meta charset="utf-8">
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+</head>
+<body>
+	<div id="printoutPanel"></div>
+	<div id="map"></div>
+	<script type="text/javascript">
+		let map = null
+		function loadMapScenario() {
+			map = new Microsoft.Maps.Map(document.getElementById('map'), {
+			    credentials: 'Am808_tBNMI958nFN95FX2oBKxPNOahsq7vyuUA-ZbPuyiNTUr7L07irajvZl0rh',
+			    center: new Microsoft.Maps.Location(51.50632, -0.12714),
+			    mapTypeId: Microsoft.Maps.MapTypeId.aerial,
+			    zoom: 15
+			})
+		}
+	</script>
+	<script type="text/javascript" src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
+</body>
+</html>

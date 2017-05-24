@@ -9,6 +9,7 @@ public class GpggaBox extends MessageBox {
 
 	private String filter;
 	private MessageBox chain;
+	private MessageBox rawChain;
 
 	public GpggaBox(){
 		this.filter = "$GPGGA";
@@ -36,6 +37,10 @@ public class GpggaBox extends MessageBox {
 			if( !message.isFixedData() ){
 				System.out.println("No fixed data!!");
 			}else{
+				if( rawChain != null ){
+						rawChain.call( message );
+        }
+
 				UTMConverter utm = new UTMConverter();
 				utm.setup(  message.getLatitude(),
 						message.getLatitudeMinutes(),
@@ -53,4 +58,8 @@ public class GpggaBox extends MessageBox {
 	public void setChain(MessageBox chain) {
 		this.chain = chain;
 	}
+
+	public void setRawChain(MessageBox chain){
+    this.rawChain = chain;
+  }
 }

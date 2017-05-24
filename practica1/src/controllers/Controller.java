@@ -19,6 +19,7 @@ public class Controller extends Thread {
 
 	private MapViewer map;
 	private GpggaReceiver<GpggaBox> receiver;
+	private CoordsServer server;
 
 	private GpggaBox box;
 
@@ -32,18 +33,19 @@ public class Controller extends Thread {
 	private SpeedViewer speedViewer;
 	private SpeedChecker speedChecker;
 
-    public Controller(String addr, int port){
-        semaphoreMap = new Semaphore( 0 );
-        semaphoreSpeed = new Semaphore( 0 );
-        doMap(semaphoreMap);
-        doSpeedViewer(semaphoreSpeed);
-        box = new GpggaBox();
-        receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
-        speed = new SpeedCalculator();
-        isSpeedCheckerReady();
-    }
+  public Controller(String addr, int port, int socketPort){
+      semaphoreMap = new Semaphore( 0 );
+      semaphoreSpeed = new Semaphore( 0 );
+      doMap(semaphoreMap);
+      doSpeedViewer(semaphoreSpeed);
+      box = new GpggaBox();
+      receiver = new GpggaReceiver<GpggaBox>(addr, port, box);
+      speed = new SpeedCalculator();
+      server = new CoordsServer( socketPort );
+      isSpeedCheckerReady();
+  }
 
-    public CoordsCalculator initCoords(){
+  public CoordsCalculator initCoords(){
 		UTMConverter utm = new UTMConverter();
 		utm.setup(40.387835, 0.0, 3.633741, 0.0, true);
 		//utm.setup(40.392132, 0.0, 3.638561, 0.0, true);
@@ -59,29 +61,36 @@ public class Controller extends Thread {
 
 	@Override
 	public void run() {
-        box.setChain(new MessageBox() {
+      box.setChain(new MessageBox() {
 
-            @Override
-            public void call(Object data) {
-                //Received data in UTM format
-                UTMConverter utm = (UTMConverter) data;
-                DataPoint point = new DataPoint();
-                point.setNorting( utm.getUTMNorting() );
-                point.setEasting( utm.getUTMEasting() );
-                refreshSpeedView(point);
-                //Refresh map
-                coordsCalc = initCoords();
-                HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUTMNorting(), true, utm.getUTMEasting(), utm.isWestLongitude());
-                map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
-            }
-        });
-        try {
-            semaphoreSpeed.acquire();
-            semaphoreMap.acquire();
-            receiver.start();
-        }catch( InterruptedException e ) {
-            e.printStackTrace();
-        }
+          @Override
+          public void call(Object data) {
+              //Received data in UTM format
+              UTMConverter utm = (UTMConverter) data;
+              DataPoint point = new DataPoint();
+              point.setNorting( utm.getUTMNorting() );
+              point.setEasting( utm.getUTMEasting() );
+              refreshSpeedView(point);
+              //Refresh map
+              coordsCalc = initCoords();
+              HashMap<String, Integer> coodsCalculated = coordsCalc.translatetoInt(utm.getUTMNorting(), true, utm.getUTMEasting(), utm.isWestLongitude());
+              map.drawPointer(coodsCalculated.get("x"), coodsCalculated.get("y"));
+          }
+      });
+      box.setRawChain( new MessageBox() {
+          @Override
+          public void call( Object data ){
+              server.apendToBuffer( (GpggaMessage) data );
+          }
+      });
+      try {
+          semaphoreSpeed.acquire();
+          semaphoreMap.acquire();
+          receiver.start();
+					server.start();
+      }catch( InterruptedException e ) {
+          e.printStackTrace();
+      }
 	}
 	
 	private void refreshSpeedView(DataPoint utm){
