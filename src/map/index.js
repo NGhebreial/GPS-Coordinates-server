@@ -23,7 +23,7 @@ function loadMap( center, _zoom ){
 	}
 	if( center ){
 		map = new Microsoft.Maps.Map(document.getElementById('map'), {
-			credentials: 'Am808_tBNMI958nFN95FX2oBKxPNOahsq7vyuUA-ZbPuyiNTUr7L07irajvZl0rh',
+			credentials: 'DISABLED_KEY',
 			center: center,
 			mapTypeId: Microsoft.Maps.MapTypeId.aerial,
 			zoom: zoom
