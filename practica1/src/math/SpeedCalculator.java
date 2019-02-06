@@ -35,8 +35,6 @@ public class SpeedCalculator {
 			currentDataPoint.setBearing(bearing);
             //Calculate the direction using bearing
 			Integer direction = (int) ((Math.round(bearing / 45.0)));// < 0? Math.round(bearing / 45.0) + 8: Math.round(bearing / 45.0));
-            System.out.println("Direction bearing " + bearing + " int " + direction);
-            System.out.println(" or " + Orientation.values()[direction]);
             currentDataPoint.setOrientation( Orientation.values()[direction]);
 			//new Data point is setting to previous data point
 			previousDataPoint = new DataPoint(currentDataPoint.getNorting(), currentDataPoint.getEasting(), currentDataPoint.getSpeed(), currentDataPoint.getOrientation(), currentDataPoint.getBearing(), currentDataPoint.getMiliseconds());

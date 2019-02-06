@@ -69,7 +69,6 @@ public class CoordsCalculator {
 		lon = (isWest ? 1 : -1) * lon;
 		double px = this.imWidth * ((lon - this.imLeftLon) / (this.imRightLon - this.imLeftLon));
 		double py = this.imHeight * ((lat - this.imUpLat) / (this.imDownLat - this.imUpLat));
-
 		return new Point2D.Double( px, py );
 	}
 	/***/
@@ -81,4 +80,21 @@ public class CoordsCalculator {
 		map.put("y", (int)data.getY());
 		return map;
 	}
+
+	public double getImWidth() {
+		return imWidth;
+	}
+
+	public double getImHeight() {
+		return imHeight;
+	}
+
+	public void setImWidth(double imWidth) {
+		this.imWidth = imWidth;
+	}
+
+	public void setImHeight(double imHeight) {
+		this.imHeight = imHeight;
+	}
+	
 }

@@ -21,6 +21,14 @@ public class UTMConverter {
 	
 	private boolean isWestLongitude;
 	
+	private double degreeLatitude; 
+	
+	private double minLatitude; 
+	
+	private double degreeLongitude; 
+	
+	private double minLongitude;
+	
 	public UTMConverter(){
 		
 	}
@@ -45,6 +53,10 @@ public class UTMConverter {
 
 	public void setup(double degreeLatitude, double minLatitude, double degreeLongitude, double minLongitude, boolean isWestLongitude) {
 		this.isWestLongitude = isWestLongitude;
+		this.degreeLatitude = degreeLatitude;
+		this.degreeLongitude = degreeLongitude;
+		this.minLatitude = minLatitude;
+		this.minLongitude = minLongitude;
 		ro = convertDegreesToRadians(degreeLatitude, minLatitude);
 		lambda = (isWestLongitude ? -1 : 1) * convertDegreesToRadians(degreeLongitude, minLongitude);
 	}	
@@ -106,4 +118,21 @@ public class UTMConverter {
 		double third = ( (( 61.0 - (58.0 * T()) + Math.pow(T(), 2.0) + (600.0 * C()) - (330.0 * eSquare) ) * Math.pow(A(), 6.0))/720.0 );
 		return 0.9996 * (M() + first * ( second + third ));
 	}
+
+	public double getDegreeLatitude() {
+		return degreeLatitude;
+	}
+
+	public double getMinLatitude() {
+		return minLatitude;
+	}
+
+	public double getDegreeLongitude() {
+		return degreeLongitude;
+	}
+
+	public double getMinLongitude() {
+		return minLongitude;
+	}
+	
 }
